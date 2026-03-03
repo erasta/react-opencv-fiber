@@ -1,5 +1,98 @@
+import { useRef, useEffect } from "react";
 import { createFilter } from "./createFilter";
-import type { FilterDef } from "../types";
+import { CVOp } from "../components/CVOp";
+import { useOpenCV } from "../components/OpenCVProvider";
+import type { FilterDef, Mat } from "../types";
+
+/* ── Simple filters delegating to CVOp ────────────────────────── */
+
+export function Invert({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <CVOp op="bitwise_not">{children}</CVOp>;
+}
+
+export function GaussianBlur({
+  children,
+  ksize = 5,
+}: {
+  children: React.ReactNode;
+  ksize?: number;
+}) {
+  const k = Math.max(1, ksize % 2 === 0 ? ksize + 1 : ksize);
+  return (
+    <CVOp op="GaussianBlur" ksize={[k, k]} sigmaX={0}>
+      {children}
+    </CVOp>
+  );
+}
+
+function useMorphKernel(ksize: number) {
+  const { cv } = useOpenCV();
+  const kernelRef = useRef<Mat | null>(null);
+
+  if (kernelRef.current) {
+    try { kernelRef.current.delete(); } catch (_) { /* noop */ }
+  }
+  if (cv) {
+    kernelRef.current = cv.getStructuringElement(
+      cv.MORPH_RECT,
+      new cv.Size(ksize, ksize),
+    );
+  } else {
+    kernelRef.current = null;
+  }
+
+  useEffect(() => {
+    return () => {
+      if (kernelRef.current) {
+        try { kernelRef.current.delete(); } catch (_) { /* noop */ }
+      }
+    };
+  }, []);
+
+  return kernelRef.current;
+}
+
+export function Dilate({
+  children,
+  ksize = 3,
+  iterations = 1,
+}: {
+  children: React.ReactNode;
+  ksize?: number;
+  iterations?: number;
+}) {
+  const kernel = useMorphKernel(ksize);
+  if (!kernel) return <>{children}</>;
+  return (
+    <CVOp op="dilate" kernel={kernel} anchor={[-1, -1]} iterations={iterations}>
+      {children}
+    </CVOp>
+  );
+}
+
+export function Erode({
+  children,
+  ksize = 3,
+  iterations = 1,
+}: {
+  children: React.ReactNode;
+  ksize?: number;
+  iterations?: number;
+}) {
+  const kernel = useMorphKernel(ksize);
+  if (!kernel) return <>{children}</>;
+  return (
+    <CVOp op="erode" kernel={kernel} anchor={[-1, -1]} iterations={iterations}>
+      {children}
+    </CVOp>
+  );
+}
+
+/* ── Complex multi-step filters (stay as createFilter) ────────── */
 
 export const Grayscale = createFilter("Grayscale", (cv, mat) => {
   const gray = new cv.Mat();
@@ -14,13 +107,6 @@ export const Grayscale = createFilter("Grayscale", (cv, mat) => {
   }
   cv.cvtColor(gray, out, cv.COLOR_GRAY2RGBA);
   gray.delete();
-  return out;
-});
-
-export const GaussianBlur = createFilter("GaussianBlur", (cv, mat, { ksize = 5 }) => {
-  const out = new cv.Mat();
-  const k = Math.max(1, ksize % 2 === 0 ? ksize + 1 : ksize);
-  cv.GaussianBlur(mat, out, new cv.Size(k, k), 0);
   return out;
 });
 
@@ -61,28 +147,6 @@ export const Threshold = createFilter("Threshold", (cv, mat, { value = 127, maxv
   return out;
 });
 
-export const Dilate = createFilter("Dilate", (cv, mat, { ksize = 3, iterations = 1 }) => {
-  const out = new cv.Mat();
-  const kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(ksize, ksize));
-  cv.dilate(mat, out, kernel, new cv.Point(-1, -1), iterations);
-  kernel.delete();
-  return out;
-});
-
-export const Erode = createFilter("Erode", (cv, mat, { ksize = 3, iterations = 1 }) => {
-  const out = new cv.Mat();
-  const kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(ksize, ksize));
-  cv.erode(mat, out, kernel, new cv.Point(-1, -1), iterations);
-  kernel.delete();
-  return out;
-});
-
-export const Invert = createFilter("Invert", (cv, mat) => {
-  const out = new cv.Mat();
-  cv.bitwise_not(mat, out);
-  return out;
-});
-
 export const Sobel = createFilter("Sobel", (cv, mat, { dx = 1, dy = 0, ksize = 3 }) => {
   const gray = new cv.Mat();
   const sob = new cv.Mat();
@@ -96,6 +160,8 @@ export const Sobel = createFilter("Sobel", (cv, mat, { dx = 1, dy = 0, ksize = 3
   gray.delete(); sob.delete(); abs.delete();
   return out;
 });
+
+/* ── Filter registry ──────────────────────────────────────────── */
 
 export const FILTERS: Record<string, FilterDef> = {
   Grayscale: { component: Grayscale, params: {} },

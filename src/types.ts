@@ -35,3 +35,19 @@ export interface PipelineItem {
   enabled: boolean;
   props: Record<string, number>;
 }
+
+export interface SignatureParam {
+  name: string;
+  required: boolean;
+  type?: string;
+}
+
+export interface SignatureOverload {
+  name: string;
+  params: SignatureParam[];
+  returns: string;
+}
+
+export interface SignatureEntry {
+  overloads: SignatureOverload[];
+}
