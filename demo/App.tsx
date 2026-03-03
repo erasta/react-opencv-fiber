@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useCallback } from "react";
 import {
   ThemeProvider,
   createTheme,
@@ -9,20 +9,17 @@ import {
   Button,
   Box,
   Paper,
-  Chip,
+  Slider,
   CircularProgress,
   Alert,
   Drawer,
 } from "@mui/material";
-import {
-  Add,
-  UploadFile,
-} from "@mui/icons-material";
+import { UploadFile } from "@mui/icons-material";
 import { OpenCVProvider, useOpenCV } from "../src/components/OpenCVProvider";
-import { PipelineOutput } from "../src/components/PipelineOutput";
-import { FILTERS } from "./filters";
-import { FilterCard } from "./FilterCard";
-import type { PipelineItem } from "../src/types";
+import { CVOp } from "../src/components/CVOp";
+import { CVImage } from "../src/components/CVImage";
+import { MatContext } from "../src/components/MatContext";
+import type { Mat } from "../src/types";
 
 const darkTheme = createTheme({
   palette: {
@@ -42,11 +39,11 @@ const DEMO_IMAGE = "https://picsum.photos/seed/opencv-demo/600/400";
 function App() {
   const { loading, error } = useOpenCV();
   const [imageSrc, setImageSrc] = useState(DEMO_IMAGE);
-  const [pipeline, setPipeline] = useState<PipelineItem[]>([
-    { id: 1, name: "Grayscale", enabled: true, props: {} },
-    { id: 2, name: "GaussianBlur", enabled: true, props: { ksize: 5 } },
-  ]);
-  const nextId = useRef(3);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  const [blurKsize, setBlurKsize] = useState(5);
+  const [cannyT1, setCannyT1] = useState(16);
+  const [cannyT2, setCannyT2] = useState(31);
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -56,55 +53,17 @@ function App() {
     reader.readAsDataURL(file);
   };
 
-  const toggleFilter = (id: number) => {
-    setPipeline((p) => p.map((f) => (f.id === id ? { ...f, enabled: !f.enabled } : f)));
-  };
-
-  const removeFilter = (id: number) => {
-    setPipeline((p) => p.filter((f) => f.id !== id));
-  };
-
-  const addFilter = (name: string) => {
-    const def = FILTERS[name];
-    const props: Record<string, number | string> = {};
-    Object.entries(def.params).forEach(([k, v]) => { props[k] = v.default; });
-    if (name === "CVOp") {
-      props.op = "";
+  const handleFinalMat = useCallback((mat: Mat) => {
+    const canvas = canvasRef.current;
+    if (!canvas || !mat) return;
+    try {
+      window.cv.imshow(canvas, mat);
+    } catch (e) {
+      console.warn("imshow error:", e);
     }
-    setPipeline((p) => [...p, { id: nextId.current++, name, enabled: true, props }]);
-  };
+  }, []);
 
-  const updateProp = (id: number, key: string, value: number | string) => {
-    setPipeline((p) =>
-      p.map((f) => (f.id === id ? { ...f, props: { ...f.props, [key]: value } } : f))
-    );
-  };
-
-  const moveFilter = (idx: number, dir: -1 | 1) => {
-    setPipeline((p) => {
-      const next = [...p];
-      const targetIdx = idx + dir;
-      if (targetIdx < 0 || targetIdx >= next.length) return p;
-      [next[idx], next[targetIdx]] = [next[targetIdx], next[idx]];
-      return next;
-    });
-  };
-
-  const enabledFilters = pipeline.filter((f) => f.enabled);
-  const jsxPreview = useMemo(() => {
-    if (enabledFilters.length === 0) return "  <CVImage src={...} />";
-    const lines: string[] = [];
-    enabledFilters.forEach((f, i) => {
-      const propsStr = Object.entries(f.props).map(([k, v]) => `${k}={${v}}`).join(" ");
-      const indent = "  ".repeat(i + 1);
-      lines.push(`${indent}<${f.name}${propsStr ? " " + propsStr : ""}>`);
-    });
-    lines.push("  ".repeat(enabledFilters.length + 1) + "<CVImage src={...} />");
-    for (let i = enabledFilters.length - 1; i >= 0; i--) {
-      lines.push("  ".repeat(i + 1) + `</${enabledFilters[i].name}>`);
-    }
-    return lines.join("\n");
-  }, [enabledFilters]);
+  const k = Math.max(1, blurKsize % 2 === 0 ? blurKsize + 1 : blurKsize);
 
   if (loading) {
     return (
@@ -158,49 +117,64 @@ function App() {
         >
           <Typography variant="overline" color="text.secondary" sx={{ mb: 1.5 }}>Pipeline</Typography>
 
-          {pipeline.map((f, idx) => (
-            <FilterCard
-              key={f.id}
-              item={f}
-              index={idx}
-              totalCount={pipeline.length}
-              onToggle={() => toggleFilter(f.id)}
-              onRemove={() => removeFilter(f.id)}
-              onMove={(dir) => moveFilter(idx, dir)}
-              onUpdateProp={(key, val) => updateProp(f.id, key, val)}
-              onReplaceProps={(props) =>
-                setPipeline((prev) =>
-                  prev.map((item) => item.id === f.id ? { ...item, props } : item)
-                )
-              }
-            />
-          ))}
+          <Paper variant="outlined" sx={{ p: 1.5, mb: 1 }}>
+            <Typography variant="body2" sx={{ fontWeight: 500, mb: 1.5 }}>GaussianBlur</Typography>
+            <Box sx={{ px: 1 }}>
+              <Box sx={{ display: "flex", justifyContent: "space-between", mb: -0.5 }}>
+                <Typography variant="caption" color="text.secondary">ksize</Typography>
+                <Typography variant="caption" color="primary">{k}</Typography>
+              </Box>
+              <Slider size="small" min={1} max={31} step={2} value={blurKsize} onChange={(_e, val) => setBlurKsize(val as number)} />
+            </Box>
+          </Paper>
 
-          <Typography variant="overline" color="text.secondary" sx={{ mt: 2, mb: 1, display: "block" }}>Add Filter</Typography>
-          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75 }}>
-            {Object.keys(FILTERS).map((name) => (
-              <Chip
-                key={name}
-                label={name}
-                size="small"
-                icon={<Add />}
-                variant="outlined"
-                onClick={() => addFilter(name)}
-                sx={{ cursor: "pointer" }}
-              />
-            ))}
-          </Box>
+          <Paper variant="outlined" sx={{ p: 1.5, mb: 1 }}>
+            <Typography variant="body2" sx={{ fontWeight: 500 }}>Grayscale</Typography>
+          </Paper>
+
+          <Paper variant="outlined" sx={{ p: 1.5, mb: 1 }}>
+            <Typography variant="body2" sx={{ fontWeight: 500, mb: 1.5 }}>Canny</Typography>
+            <Box sx={{ px: 1, mb: 0.5 }}>
+              <Box sx={{ display: "flex", justifyContent: "space-between", mb: -0.5 }}>
+                <Typography variant="caption" color="text.secondary">threshold1</Typography>
+                <Typography variant="caption" color="primary">{cannyT1}</Typography>
+              </Box>
+              <Slider size="small" min={0} max={255} step={1} value={cannyT1} onChange={(_e, val) => setCannyT1(val as number)} />
+            </Box>
+            <Box sx={{ px: 1, mb: 0.5 }}>
+              <Box sx={{ display: "flex", justifyContent: "space-between", mb: -0.5 }}>
+                <Typography variant="caption" color="text.secondary">threshold2</Typography>
+                <Typography variant="caption" color="primary">{cannyT2}</Typography>
+              </Box>
+              <Slider size="small" min={0} max={255} step={1} value={cannyT2} onChange={(_e, val) => setCannyT2(val as number)} />
+            </Box>
+          </Paper>
 
           <Typography variant="overline" color="text.secondary" sx={{ mt: 3, mb: 1, display: "block" }}>JSX Output</Typography>
           <Paper variant="outlined" sx={{ p: 1.5 }}>
             <pre style={{ margin: 0, fontSize: 11, lineHeight: 1.6, color: "#9090b8", overflow: "auto", whiteSpace: "pre" }}>
-              {jsxPreview}
+{`  <CVOp op="Canny" threshold1={${cannyT1}} threshold2={${cannyT2}}>
+    <CVOp op="cvtColor" code={11}>
+      <CVOp op="GaussianBlur" ksize={[${k},${k}]} sigmaX={0}>
+        <CVImage src={...} />
+      </CVOp>
+    </CVOp>
+  </CVOp>`}
             </pre>
           </Paper>
         </Drawer>
 
         <Box sx={{ flex: 1, overflow: "auto", display: "flex", alignItems: "center", justifyContent: "center", p: 3 }}>
-          <PipelineOutput imageSrc={imageSrc} pipeline={pipeline} filters={FILTERS} />
+          <MatContext.Provider value={handleFinalMat}>
+            <CVOp op="Canny" threshold1={cannyT1} threshold2={cannyT2}>
+              <CVOp op="cvtColor" code={11}>
+                <CVOp op="GaussianBlur" ksize={[k, k]} sigmaX={0}>
+                  <CVImage src={imageSrc} />
+                </CVOp>
+              </CVOp>
+            </CVOp>
+          </MatContext.Provider>
+          <canvas ref={canvasRef} />
         </Box>
       </Box>
     </Box>
