@@ -25,8 +25,13 @@ export interface ParamConfig {
 }
 
 export interface FilterDef {
-  component: React.ComponentType<{ children: React.ReactNode; [key: string]: any }>;
   params: Record<string, ParamConfig>;
+  /** Direct OpenCV op name — PipelineOutput renders <CVOp op={...}> */
+  op?: string;
+  /** Transform user-facing slider props into CVOp props */
+  mapProps?: (props: Record<string, number>) => Record<string, unknown>;
+  /** Wrapper component for complex multi-step filters */
+  component?: React.ComponentType<{ children: React.ReactNode; [key: string]: any }>;
 }
 
 export interface PipelineItem {

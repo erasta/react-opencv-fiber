@@ -1,33 +1,10 @@
 import { useRef, useEffect } from "react";
-import { createFilter } from "./createFilter";
-import { CVOp } from "../components/CVOp";
-import { useOpenCV } from "../components/OpenCVProvider";
-import type { FilterDef, Mat } from "../types";
+import { CVOp } from "../src/components/CVOp";
+import { createFilter } from "../src/filters/createFilter";
+import { useOpenCV } from "../src/components/OpenCVProvider";
+import type { FilterDef, Mat } from "../src/types";
 
-/* ── Simple filters delegating to CVOp ────────────────────────── */
-
-export function Invert({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return <CVOp op="bitwise_not">{children}</CVOp>;
-}
-
-export function GaussianBlur({
-  children,
-  ksize = 5,
-}: {
-  children: React.ReactNode;
-  ksize?: number;
-}) {
-  const k = Math.max(1, ksize % 2 === 0 ? ksize + 1 : ksize);
-  return (
-    <CVOp op="GaussianBlur" ksize={[k, k]} sigmaX={0}>
-      {children}
-    </CVOp>
-  );
-}
+/* ── Dilate / Erode need a kernel Mat, so they wrap CVOp ──────── */
 
 function useMorphKernel(ksize: number) {
   const { cv } = useOpenCV();
@@ -56,7 +33,7 @@ function useMorphKernel(ksize: number) {
   return kernelRef.current;
 }
 
-export function Dilate({
+function Dilate({
   children,
   ksize = 3,
   iterations = 1,
@@ -74,7 +51,7 @@ export function Dilate({
   );
 }
 
-export function Erode({
+function Erode({
   children,
   ksize = 3,
   iterations = 1,
@@ -92,9 +69,9 @@ export function Erode({
   );
 }
 
-/* ── Complex multi-step filters (stay as createFilter) ────────── */
+/* ── Complex multi-step filters use createFilter ──────────────── */
 
-export const Grayscale = createFilter("Grayscale", (cv, mat) => {
+const Grayscale = createFilter("Grayscale", (cv, mat) => {
   const gray = new cv.Mat();
   const out = new cv.Mat();
   if (mat.channels() === 4) {
@@ -110,7 +87,7 @@ export const Grayscale = createFilter("Grayscale", (cv, mat) => {
   return out;
 });
 
-export const Canny = createFilter("Canny", (cv, mat, { threshold1 = 50, threshold2 = 150 }) => {
+const Canny = createFilter("Canny", (cv, mat, { threshold1 = 50, threshold2 = 150 }) => {
   const gray = new cv.Mat();
   const edges = new cv.Mat();
   const out = new cv.Mat();
@@ -126,7 +103,7 @@ export const Canny = createFilter("Canny", (cv, mat, { threshold1 = 50, threshol
   return out;
 });
 
-export const Threshold = createFilter("Threshold", (cv, mat, { value = 127, maxval = 255, type = "binary" }) => {
+const Threshold = createFilter("Threshold", (cv, mat, { value = 127, maxval = 255, type = "binary" }) => {
   const gray = new cv.Mat();
   const thresh = new cv.Mat();
   const out = new cv.Mat();
@@ -147,7 +124,7 @@ export const Threshold = createFilter("Threshold", (cv, mat, { value = 127, maxv
   return out;
 });
 
-export const Sobel = createFilter("Sobel", (cv, mat, { dx = 1, dy = 0, ksize = 3 }) => {
+const Sobel = createFilter("Sobel", (cv, mat, { dx = 1, dy = 0, ksize = 3 }) => {
   const gray = new cv.Mat();
   const sob = new cv.Mat();
   const abs = new cv.Mat();
@@ -165,11 +142,18 @@ export const Sobel = createFilter("Sobel", (cv, mat, { dx = 1, dy = 0, ksize = 3
 
 export const FILTERS: Record<string, FilterDef> = {
   Grayscale: { component: Grayscale, params: {} },
-  GaussianBlur: { component: GaussianBlur, params: { ksize: { min: 1, max: 31, step: 2, default: 5 } } },
+  GaussianBlur: {
+    op: "GaussianBlur",
+    mapProps: ({ ksize = 5 }) => {
+      const k = Math.max(1, ksize % 2 === 0 ? ksize + 1 : ksize);
+      return { ksize: [k, k], sigmaX: 0 };
+    },
+    params: { ksize: { min: 1, max: 31, step: 2, default: 5 } },
+  },
   Canny: { component: Canny, params: { threshold1: { min: 0, max: 255, step: 1, default: 50 }, threshold2: { min: 0, max: 255, step: 1, default: 150 } } },
   Threshold: { component: Threshold, params: { value: { min: 0, max: 255, step: 1, default: 127 } } },
   Dilate: { component: Dilate, params: { ksize: { min: 1, max: 15, step: 2, default: 3 }, iterations: { min: 1, max: 10, step: 1, default: 1 } } },
   Erode: { component: Erode, params: { ksize: { min: 1, max: 15, step: 2, default: 3 }, iterations: { min: 1, max: 10, step: 1, default: 1 } } },
-  Invert: { component: Invert, params: {} },
+  Invert: { op: "bitwise_not", params: {} },
   Sobel: { component: Sobel, params: { dx: { min: 0, max: 2, step: 1, default: 1 }, dy: { min: 0, max: 2, step: 1, default: 0 } } },
 };

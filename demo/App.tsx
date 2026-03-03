@@ -26,7 +26,7 @@ import {
 } from "@mui/icons-material";
 import { OpenCVProvider, useOpenCV } from "../src/components/OpenCVProvider";
 import { PipelineOutput } from "../src/components/PipelineOutput";
-import { FILTERS } from "../src/filters";
+import { FILTERS } from "./filters";
 import type { PipelineItem } from "../src/types";
 
 const darkTheme = createTheme({
@@ -244,7 +244,7 @@ function App() {
         </Drawer>
 
         <Box sx={{ flex: 1, overflow: "auto", display: "flex", alignItems: "center", justifyContent: "center", p: 3 }}>
-          <PipelineOutput imageSrc={imageSrc} pipeline={pipeline} />
+          <PipelineOutput imageSrc={imageSrc} pipeline={pipeline} filters={FILTERS} />
         </Box>
       </Box>
     </Box>

@@ -2,16 +2,18 @@ import { useRef, useCallback, useMemo } from "react";
 import { useOpenCV } from "./OpenCVProvider";
 import { MatContext } from "./MatContext";
 import { CVImage } from "./CVImage";
-import { FILTERS } from "../filters";
-import type { Mat, PipelineItem } from "../types";
+import { CVOp } from "./CVOp";
+import type { Mat, FilterDef, PipelineItem } from "../types";
 
 export function PipelineOutput({
   imageSrc,
   pipeline,
+  filters,
   onResult,
 }: {
   imageSrc: string;
   pipeline: PipelineItem[];
+  filters: Record<string, FilterDef>;
   onResult?: (dataUrl: string) => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -35,12 +37,18 @@ export function PipelineOutput({
     for (let i = pipeline.length - 1; i >= 0; i--) {
       const f = pipeline[i];
       if (!f.enabled) continue;
-      const Comp = FILTERS[f.name]?.component;
-      if (!Comp) continue;
-      node = <Comp {...f.props}>{node}</Comp>;
+      const def = filters[f.name];
+      if (!def) continue;
+      if (def.op) {
+        const mapped = def.mapProps ? def.mapProps(f.props) : f.props;
+        node = <CVOp op={def.op} {...mapped}>{node}</CVOp>;
+      } else if (def.component) {
+        const Comp = def.component;
+        node = <Comp {...f.props}>{node}</Comp>;
+      }
     }
     return node;
-  }, [imageSrc, pipeline]);
+  }, [imageSrc, pipeline, filters]);
 
   return (
     <div>
