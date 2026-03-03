@@ -2,6 +2,8 @@
 
 A React renderer for OpenCV.js. Write image-processing pipelines as JSX — each element maps to an OpenCV operation, and the tree executes bottom-up through a custom React reconciler.
 
+[**Live demo**](https://erasta.github.io/react-opencv-fiber/)
+
 ```tsx
 <CvCanvas>
   <cvCanny threshold1={50} threshold2={100}>
