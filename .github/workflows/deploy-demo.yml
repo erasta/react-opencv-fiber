@@ -29,6 +29,9 @@ jobs:
 
       - run: npm ci
 
+      - run: npm ci
+        working-directory: demo
+
       - run: npm run build
 
       - uses: actions/configure-pages@v5
