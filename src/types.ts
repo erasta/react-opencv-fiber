@@ -29,7 +29,7 @@ export interface FilterDef {
   /** Direct OpenCV op name — PipelineOutput renders <CVOp op={...}> */
   op?: string;
   /** Transform user-facing slider props into CVOp props */
-  mapProps?: (props: Record<string, number>) => Record<string, unknown>;
+  mapProps?: (props: Record<string, number | string>) => Record<string, unknown>;
   /** Wrapper component for complex multi-step filters */
   component?: React.ComponentType<{ children: React.ReactNode; [key: string]: any }>;
 }
@@ -38,7 +38,7 @@ export interface PipelineItem {
   id: number;
   name: string;
   enabled: boolean;
-  props: Record<string, number>;
+  props: Record<string, number | string>;
 }
 
 export interface SignatureParam {

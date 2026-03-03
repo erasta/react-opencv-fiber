@@ -9,24 +9,19 @@ import {
   Button,
   Box,
   Paper,
-  Slider,
-  IconButton,
-  Switch,
   Chip,
   CircularProgress,
   Alert,
   Drawer,
 } from "@mui/material";
 import {
-  KeyboardArrowUp,
-  KeyboardArrowDown,
-  Close,
   Add,
   UploadFile,
 } from "@mui/icons-material";
 import { OpenCVProvider, useOpenCV } from "../src/components/OpenCVProvider";
 import { PipelineOutput } from "../src/components/PipelineOutput";
 import { FILTERS } from "./filters";
+import { FilterCard } from "./FilterCard";
 import type { PipelineItem } from "../src/types";
 
 const darkTheme = createTheme({
@@ -71,12 +66,15 @@ function App() {
 
   const addFilter = (name: string) => {
     const def = FILTERS[name];
-    const props: Record<string, number> = {};
+    const props: Record<string, number | string> = {};
     Object.entries(def.params).forEach(([k, v]) => { props[k] = v.default; });
+    if (name === "CVOp") {
+      props.op = "";
+    }
     setPipeline((p) => [...p, { id: nextId.current++, name, enabled: true, props }]);
   };
 
-  const updateProp = (id: number, key: string, value: number) => {
+  const updateProp = (id: number, key: string, value: number | string) => {
     setPipeline((p) =>
       p.map((f) => (f.id === id ? { ...f, props: { ...f.props, [key]: value } } : f))
     );
@@ -161,63 +159,21 @@ function App() {
           <Typography variant="overline" color="text.secondary" sx={{ mb: 1.5 }}>Pipeline</Typography>
 
           {pipeline.map((f, idx) => (
-            <Paper
+            <FilterCard
               key={f.id}
-              variant="outlined"
-              sx={{
-                p: 1.5,
-                mb: 1,
-                opacity: f.enabled ? 1 : 0.4,
-                transition: "opacity 0.2s",
-              }}
-            >
-              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: f.enabled && Object.keys(f.props).length ? 1.5 : 0 }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                  <Box sx={{ display: "flex", flexDirection: "column" }}>
-                    <IconButton size="small" disabled={idx === 0} onClick={() => moveFilter(idx, -1)} sx={{ p: 0 }}>
-                      <KeyboardArrowUp fontSize="small" />
-                    </IconButton>
-                    <IconButton size="small" disabled={idx === pipeline.length - 1} onClick={() => moveFilter(idx, 1)} sx={{ p: 0 }}>
-                      <KeyboardArrowDown fontSize="small" />
-                    </IconButton>
-                  </Box>
-                  <Chip
-                    label={`<${f.name}>`}
-                    size="small"
-                    color={f.enabled ? "primary" : "default"}
-                    variant={f.enabled ? "filled" : "outlined"}
-                    sx={{ fontFamily: "inherit", fontWeight: 500 }}
-                  />
-                </Box>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                  <Switch
-                    size="small"
-                    checked={f.enabled}
-                    onChange={() => toggleFilter(f.id)}
-                  />
-                  <IconButton size="small" onClick={() => removeFilter(f.id)} sx={{ color: "text.secondary" }}>
-                    <Close fontSize="small" />
-                  </IconButton>
-                </Box>
-              </Box>
-
-              {f.enabled && Object.entries(FILTERS[f.name]?.params || {}).map(([key, cfg]) => (
-                <Box key={key} sx={{ px: 1, mb: 0.5 }}>
-                  <Box sx={{ display: "flex", justifyContent: "space-between", mb: -0.5 }}>
-                    <Typography variant="caption" color="text.secondary">{key}</Typography>
-                    <Typography variant="caption" color="primary">{f.props[key]}</Typography>
-                  </Box>
-                  <Slider
-                    size="small"
-                    min={cfg.min}
-                    max={cfg.max}
-                    step={cfg.step}
-                    value={f.props[key]}
-                    onChange={(_e, val) => updateProp(f.id, key, val as number)}
-                  />
-                </Box>
-              ))}
-            </Paper>
+              item={f}
+              index={idx}
+              totalCount={pipeline.length}
+              onToggle={() => toggleFilter(f.id)}
+              onRemove={() => removeFilter(f.id)}
+              onMove={(dir) => moveFilter(idx, dir)}
+              onUpdateProp={(key, val) => updateProp(f.id, key, val)}
+              onReplaceProps={(props) =>
+                setPipeline((prev) =>
+                  prev.map((item) => item.id === f.id ? { ...item, props } : item)
+                )
+              }
+            />
           ))}
 
           <Typography variant="overline" color="text.secondary" sx={{ mt: 2, mb: 1, display: "block" }}>Add Filter</Typography>

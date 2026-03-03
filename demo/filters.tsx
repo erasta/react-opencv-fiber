@@ -2,7 +2,10 @@ import { useRef, useEffect } from "react";
 import { CVOp } from "../src/components/CVOp";
 import { createFilter } from "../src/filters/createFilter";
 import { useOpenCV } from "../src/components/OpenCVProvider";
-import type { FilterDef, Mat } from "../src/types";
+import signatures from "../src/data/opencv-signatures.json";
+import type { FilterDef, Mat, SignatureEntry } from "../src/types";
+
+const sigs = signatures as Record<string, SignatureEntry>;
 
 /* ── Dilate / Erode need a kernel Mat, so they wrap CVOp ──────── */
 
@@ -138,13 +141,58 @@ const Sobel = createFilter("Sobel", (cv, mat, { dx = 1, dy = 0, ksize = 3 }) => 
   return out;
 });
 
+/* ── Generic CVOp wrapper ──────────────────────────────────────── */
+
+function GenericCVOp({
+  children,
+  op,
+  ...rest
+}: {
+  children: React.ReactNode;
+  op?: string;
+  [key: string]: unknown;
+}) {
+  if (!op) return <>{children}</>;
+  return (
+    <CVOp op={op} {...rest}>
+      {children}
+    </CVOp>
+  );
+}
+
+export interface OpParamInfo {
+  name: string;
+  type: string;
+  required: boolean;
+  isNumeric: boolean;
+}
+
+const NUMERIC_TYPES = new Set(["int", "double", "float", "size_t", "short", "uchar"]);
+
+export function getOpParams(opName: string): OpParamInfo[] {
+  const entry = sigs[opName];
+  if (!entry) return [];
+  const params = entry.overloads[0]?.params ?? [];
+  return params
+    .filter((p) => p.type !== "InputArray" && p.type !== "OutputArray")
+    .map((p) => ({
+      name: p.name,
+      type: p.type ?? "unknown",
+      required: p.required,
+      isNumeric: NUMERIC_TYPES.has(p.type ?? ""),
+    }));
+}
+
+export const OP_NAMES = Object.keys(sigs).sort();
+
 /* ── Filter registry ──────────────────────────────────────────── */
 
 export const FILTERS: Record<string, FilterDef> = {
   Grayscale: { component: Grayscale, params: {} },
   GaussianBlur: {
     op: "GaussianBlur",
-    mapProps: ({ ksize = 5 }) => {
+    mapProps: ({ ksize: rawKsize = 5 }) => {
+      const ksize = rawKsize as number;
       const k = Math.max(1, ksize % 2 === 0 ? ksize + 1 : ksize);
       return { ksize: [k, k], sigmaX: 0 };
     },
@@ -156,4 +204,5 @@ export const FILTERS: Record<string, FilterDef> = {
   Erode: { component: Erode, params: { ksize: { min: 1, max: 15, step: 2, default: 3 }, iterations: { min: 1, max: 10, step: 1, default: 1 } } },
   Invert: { op: "bitwise_not", params: {} },
   Sobel: { component: Sobel, params: { dx: { min: 0, max: 2, step: 1, default: 1 }, dy: { min: 0, max: 2, step: 1, default: 0 } } },
+  CVOp: { component: GenericCVOp, params: {} },
 };
