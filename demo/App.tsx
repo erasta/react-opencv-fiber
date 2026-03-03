@@ -15,8 +15,7 @@ import {
   Drawer,
 } from "@mui/material";
 import { UploadFile } from "@mui/icons-material";
-import { OpenCVProvider, useOpenCV, CvCanvas } from "../src";
-import "../src/fiber/types";
+import { OpenCVProvider, useOpenCV, CvCanvas } from "react-opencv-fiber";
 
 const darkTheme = createTheme({
   palette: {

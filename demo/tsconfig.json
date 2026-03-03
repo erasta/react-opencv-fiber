@@ -1,0 +1,12 @@
+{
+  "extends": "../tsconfig.lib.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "../node_modules/.tmp/tsconfig.demo.tsbuildinfo",
+    "paths": {
+      "react-opencv-fiber": ["../lib/src/index.ts"],
+      "react": ["../node_modules/@types/react"],
+      "react/jsx-runtime": ["../node_modules/@types/react/jsx-runtime"]
+    }
+  },
+  "include": ["."]
+}
