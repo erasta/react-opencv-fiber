@@ -1,0 +1,22 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Dev Server",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}",
+      "preLaunchTask": "npm: dev"
+    },
+    {
+      "name": "Python: Extract OpenCV Signatures",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/extract_opencv_signatures.py",
+      "python": "${workspaceFolder}/scripts/.venv/bin/python",
+      "cwd": "${workspaceFolder}/scripts",
+      "console": "integratedTerminal"
+    }
+  ]
+}

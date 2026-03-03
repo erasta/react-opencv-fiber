@@ -243,8 +243,7 @@ def _load_stub_types() -> dict[str, dict[str, str]]:
     func_nodes: dict[str, list[ast.FunctionDef]] = defaultdict(list)
 
     for node in ast.walk(tree):
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            # Only top-level defs (their parent is the Module)
+        if isinstance(node, ast.FunctionDef):
             func_nodes[node.name].append(node)
 
     result: dict[str, dict[str, str]] = {}
