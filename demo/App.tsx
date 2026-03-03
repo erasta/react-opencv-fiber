@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState } from "react";
 import {
   ThemeProvider,
   createTheme,
@@ -15,11 +15,8 @@ import {
   Drawer,
 } from "@mui/material";
 import { UploadFile } from "@mui/icons-material";
-import { OpenCVProvider, useOpenCV } from "../src/components/OpenCVProvider";
-import { CVOp } from "../src/components/CVOp";
-import { CVImage } from "../src/components/CVImage";
-import { MatContext } from "../src/components/MatContext";
-import type { Mat } from "../src/types";
+import { OpenCVProvider, useOpenCV, CvCanvas } from "../src";
+import "../src/fiber/types";
 
 const darkTheme = createTheme({
   palette: {
@@ -39,7 +36,6 @@ const DEMO_IMAGE = "https://picsum.photos/seed/opencv-demo/600/400";
 function App() {
   const { loading, error } = useOpenCV();
   const [imageSrc, setImageSrc] = useState(DEMO_IMAGE);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const [blurKsize, setBlurKsize] = useState(5);
   const [cannyT1, setCannyT1] = useState(16);
@@ -52,16 +48,6 @@ function App() {
     reader.onload = (ev) => setImageSrc(ev.target!.result as string);
     reader.readAsDataURL(file);
   };
-
-  const handleFinalMat = useCallback((mat: Mat) => {
-    const canvas = canvasRef.current;
-    if (!canvas || !mat) return;
-    try {
-      window.cv.imshow(canvas, mat);
-    } catch (e) {
-      console.warn("imshow error:", e);
-    }
-  }, []);
 
   const k = Math.max(1, blurKsize % 2 === 0 ? blurKsize + 1 : blurKsize);
 
@@ -153,28 +139,27 @@ function App() {
           <Typography variant="overline" color="text.secondary" sx={{ mt: 3, mb: 1, display: "block" }}>JSX Output</Typography>
           <Paper variant="outlined" sx={{ p: 1.5 }}>
             <pre style={{ margin: 0, fontSize: 11, lineHeight: 1.6, color: "#9090b8", overflow: "auto", whiteSpace: "pre" }}>
-{`  <CVOp op="Canny" threshold1={${cannyT1}} threshold2={${cannyT2}}>
-    <CVOp op="cvtColor" code={11}>
-      <CVOp op="GaussianBlur" ksize={[${k},${k}]} sigmaX={0}>
-        <CVImage src={...} />
-      </CVOp>
-    </CVOp>
-  </CVOp>`}
+{`  <cvCanny threshold1={${cannyT1}} threshold2={${cannyT2}}>
+    <cvCvtColor code={11}>
+      <cvGaussianBlur ksize={[${k},${k}]} sigmaX={0}>
+        <cvImage src={...} />
+      </cvGaussianBlur>
+    </cvCvtColor>
+  </cvCanny>`}
             </pre>
           </Paper>
         </Drawer>
 
         <Box sx={{ flex: 1, overflow: "auto", display: "flex", alignItems: "center", justifyContent: "center", p: 3 }}>
-          <MatContext.Provider value={handleFinalMat}>
-            <CVOp op="Canny" threshold1={cannyT1} threshold2={cannyT2}>
-              <CVOp op="cvtColor" code={11}>
-                <CVOp op="GaussianBlur" ksize={[k, k]} sigmaX={0}>
-                  <CVImage src={imageSrc} />
-                </CVOp>
-              </CVOp>
-            </CVOp>
-          </MatContext.Provider>
-          <canvas ref={canvasRef} />
+          <CvCanvas style={{ maxWidth: "100%" }}>
+            <cvCanny threshold1={cannyT1} threshold2={cannyT2}>
+              <cvCvtColor code={11}>
+                <cvGaussianBlur ksize={[k, k]} sigmaX={0}>
+                  <cvImage src={imageSrc} />
+                </cvGaussianBlur>
+              </cvCvtColor>
+            </cvCanny>
+          </CvCanvas>
         </Box>
       </Box>
     </Box>

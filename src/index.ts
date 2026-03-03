@@ -1,12 +1,12 @@
 export { OpenCVProvider, useOpenCV } from "./components/OpenCVProvider";
-export { MatContext } from "./components/MatContext";
-export { CVImage } from "./components/CVImage";
-export { CVOp } from "./components/CVOp";
+export { CvCanvas } from "./fiber/CvCanvas";
+export type { CvCanvasProps } from "./fiber/CvCanvas";
+export type { CvOpProps } from "./fiber/types";
+import "./fiber/types";
 export type {
   CV,
   Mat,
   OpenCVContextValue,
-  OnMatCallback,
   ParamConfig,
   SignatureParam,
   SignatureOverload,
