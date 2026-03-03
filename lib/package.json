@@ -1,6 +1,10 @@
 {
-  "name": "react-opencv-fiber",
-  "version": "0.0.0",
+  "name": "@react-opencv/fiber",
+  "version": "0.1.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/erasta/react-opencv-fiber.git"
+  },
   "description": "A React reconciler for building OpenCV.js image-processing pipelines declaratively",
   "type": "module",
   "main": "dist/index.js",
