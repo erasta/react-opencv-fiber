@@ -1,8 +1,33 @@
 {
   "name": "react-opencv-fiber",
   "version": "0.0.0",
+  "description": "A React reconciler for building OpenCV.js image-processing pipelines declaratively",
   "type": "module",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "license": "MIT",
+  "keywords": [
+    "react",
+    "opencv",
+    "fiber",
+    "reconciler",
+    "image-processing",
+    "computer-vision"
+  ],
+  "scripts": {
+    "build": "vite build && tsc -p tsconfig.build.json"
+  },
   "dependencies": {
     "react-reconciler": "^0.33.0"
   },
