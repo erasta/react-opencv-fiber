@@ -1,73 +1,106 @@
-# React + TypeScript + Vite
+# react-opencv-fiber
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A React renderer for OpenCV.js. Write image-processing pipelines as JSX — each element maps to an OpenCV operation, and the tree executes bottom-up through a custom React reconciler.
 
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```tsx
+<CvCanvas>
+  <cvCanny threshold1={50} threshold2={100}>
+    <cvCvtColor code={11}>
+      <cvGaussianBlur ksize={[5, 5]} sigmaX={0}>
+        <cvImage src="photo.jpg" />
+      </cvGaussianBlur>
+    </cvCvtColor>
+  </cvCanny>
+</CvCanvas>
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## How it works
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+The library uses a custom React Fiber reconciler to build a tree of `CvNode`s from JSX. When the tree changes (props update, nodes added/removed), the pipeline re-executes:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+1. **Leaf nodes** (`<cvImage>`) load source images into OpenCV `Mat` objects
+2. **Inner nodes** (`<cvGaussianBlur>`, `<cvCanny>`, ...) receive their child's `Mat` as input, apply the corresponding `cv.*` function, and pass the result up
+3. **`<CvCanvas>`** displays the final `Mat` on an HTML canvas
+
+Intermediate `Mat` objects are automatically cleaned up to avoid WebAssembly memory leaks.
+
+## API
+
+### `<OpenCVProvider>`
+
+Loads OpenCV.js (WASM, ~8 MB) and provides it via context. Wrap your app with this.
+
+```tsx
+<OpenCVProvider>
+  <App />
+</OpenCVProvider>
+```
+
+### `useOpenCV()`
+
+```tsx
+const { cv, loading, error } = useOpenCV();
+```
+
+### `<CvCanvas>`
+
+Renders a `<canvas>` and executes the CV pipeline defined by its children.
+
+```tsx
+<CvCanvas
+  style={{ maxWidth: "100%" }}
+  className="my-canvas"
+  onResult={(mat) => { /* final Mat before display */ }}
+>
+  {/* CV operation tree */}
+</CvCanvas>
+```
+
+Supports `ref` forwarding to the underlying canvas element.
+
+### CV operation elements
+
+Any OpenCV function can be used as a JSX element with a `cv` prefix:
+
+| JSX element | OpenCV function |
+|---|---|
+| `<cvGaussianBlur ksize={[5,5]} sigmaX={0}>` | `cv.GaussianBlur(...)` |
+| `<cvCanny threshold1={50} threshold2={100}>` | `cv.Canny(...)` |
+| `<cvCvtColor code={11}>` | `cv.cvtColor(...)` |
+| `<cvThreshold thresh={127} maxval={255} type={0}>` | `cv.threshold(...)` |
+| `<cvResize dsize={[320, 240]}>` | `cv.resize(...)` |
+| `<cvMedianBlur ksize={5}>` | `cv.medianBlur(...)` |
+| `<cvBilateralFilter d={9} sigmaColor={75} sigmaSpace={75}>` | `cv.bilateralFilter(...)` |
+
+Operations are nested inside-out — the innermost element runs first:
+
+```tsx
+// Execution order: image load -> blur -> grayscale -> edge detection
+<cvCanny threshold1={50} threshold2={100}>
+  <cvCvtColor code={11}>
+    <cvGaussianBlur ksize={[5, 5]} sigmaX={0}>
+      <cvImage src="photo.jpg" />
+    </cvGaussianBlur>
+  </cvCvtColor>
+</cvCanny>
+```
+
+Props map directly to OpenCV function parameters. Array values are coerced to the appropriate OpenCV types (`Size`, `Point`, `Scalar`).
+
+### `<cvImage>`
+
+Special element that loads an image (URL or data URI) into a `Mat`.
+
+```tsx
+<cvImage src="https://example.com/photo.jpg" />
+```
+
+## Demo
+
+The `demo/` directory contains a small app with a slider-driven pipeline (blur + grayscale + Canny edge detection). To run it:
+
+```sh
+npm install
+cd demo && npm install
+npm run dev
 ```
