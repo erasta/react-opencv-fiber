@@ -1,0 +1,109 @@
+import { createFilter } from "./createFilter";
+import type { FilterDef } from "../types";
+
+export const Grayscale = createFilter("Grayscale", (cv, mat) => {
+  const gray = new cv.Mat();
+  const out = new cv.Mat();
+  if (mat.channels() === 4) {
+    cv.cvtColor(mat, gray, cv.COLOR_RGBA2GRAY);
+  } else if (mat.channels() === 3) {
+    cv.cvtColor(mat, gray, cv.COLOR_RGB2GRAY);
+  } else {
+    gray.delete();
+    return mat.clone();
+  }
+  cv.cvtColor(gray, out, cv.COLOR_GRAY2RGBA);
+  gray.delete();
+  return out;
+});
+
+export const GaussianBlur = createFilter("GaussianBlur", (cv, mat, { ksize = 5 }) => {
+  const out = new cv.Mat();
+  const k = Math.max(1, ksize % 2 === 0 ? ksize + 1 : ksize);
+  cv.GaussianBlur(mat, out, new cv.Size(k, k), 0);
+  return out;
+});
+
+export const Canny = createFilter("Canny", (cv, mat, { threshold1 = 50, threshold2 = 150 }) => {
+  const gray = new cv.Mat();
+  const edges = new cv.Mat();
+  const out = new cv.Mat();
+  if (mat.channels() >= 3) {
+    cv.cvtColor(mat, gray, cv.COLOR_RGBA2GRAY);
+  } else {
+    mat.copyTo(gray);
+  }
+  cv.Canny(gray, edges, threshold1, threshold2);
+  cv.cvtColor(edges, out, cv.COLOR_GRAY2RGBA);
+  gray.delete();
+  edges.delete();
+  return out;
+});
+
+export const Threshold = createFilter("Threshold", (cv, mat, { value = 127, maxval = 255, type = "binary" }) => {
+  const gray = new cv.Mat();
+  const thresh = new cv.Mat();
+  const out = new cv.Mat();
+  if (mat.channels() >= 3) {
+    cv.cvtColor(mat, gray, cv.COLOR_RGBA2GRAY);
+  } else {
+    mat.copyTo(gray);
+  }
+  const types: Record<string, number> = {
+    binary: cv.THRESH_BINARY,
+    otsu: cv.THRESH_BINARY + cv.THRESH_OTSU,
+    inv: cv.THRESH_BINARY_INV,
+  };
+  cv.threshold(gray, thresh, value, maxval, types[type] || cv.THRESH_BINARY);
+  cv.cvtColor(thresh, out, cv.COLOR_GRAY2RGBA);
+  gray.delete();
+  thresh.delete();
+  return out;
+});
+
+export const Dilate = createFilter("Dilate", (cv, mat, { ksize = 3, iterations = 1 }) => {
+  const out = new cv.Mat();
+  const kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(ksize, ksize));
+  cv.dilate(mat, out, kernel, new cv.Point(-1, -1), iterations);
+  kernel.delete();
+  return out;
+});
+
+export const Erode = createFilter("Erode", (cv, mat, { ksize = 3, iterations = 1 }) => {
+  const out = new cv.Mat();
+  const kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(ksize, ksize));
+  cv.erode(mat, out, kernel, new cv.Point(-1, -1), iterations);
+  kernel.delete();
+  return out;
+});
+
+export const Invert = createFilter("Invert", (cv, mat) => {
+  const out = new cv.Mat();
+  cv.bitwise_not(mat, out);
+  return out;
+});
+
+export const Sobel = createFilter("Sobel", (cv, mat, { dx = 1, dy = 0, ksize = 3 }) => {
+  const gray = new cv.Mat();
+  const sob = new cv.Mat();
+  const abs = new cv.Mat();
+  const out = new cv.Mat();
+  if (mat.channels() >= 3) cv.cvtColor(mat, gray, cv.COLOR_RGBA2GRAY);
+  else mat.copyTo(gray);
+  cv.Sobel(gray, sob, cv.CV_16S, dx, dy, ksize);
+  cv.convertScaleAbs(sob, abs);
+  cv.cvtColor(abs, out, cv.COLOR_GRAY2RGBA);
+  gray.delete(); sob.delete(); abs.delete();
+  return out;
+});
+
+export const FILTERS: Record<string, FilterDef> = {
+  Grayscale: { component: Grayscale, params: {} },
+  GaussianBlur: { component: GaussianBlur, params: { ksize: { min: 1, max: 31, step: 2, default: 5 } } },
+  Canny: { component: Canny, params: { threshold1: { min: 0, max: 255, step: 1, default: 50 }, threshold2: { min: 0, max: 255, step: 1, default: 150 } } },
+  Threshold: { component: Threshold, params: { value: { min: 0, max: 255, step: 1, default: 127 } } },
+  Dilate: { component: Dilate, params: { ksize: { min: 1, max: 15, step: 2, default: 3 }, iterations: { min: 1, max: 10, step: 1, default: 1 } } },
+  Erode: { component: Erode, params: { ksize: { min: 1, max: 15, step: 2, default: 3 }, iterations: { min: 1, max: 10, step: 1, default: 1 } } },
+  Invert: { component: Invert, params: {} },
+  Sobel: { component: Sobel, params: { dx: { min: 0, max: 2, step: 1, default: 1 }, dy: { min: 0, max: 2, step: 1, default: 0 } } },
+};
