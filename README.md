@@ -112,3 +112,7 @@ npm run dev
 - [OpenCV](https://opencv.org/) — the computer vision library that powers all the operations
 - [OpenCV.js](https://docs.opencv.org/4.x/d5/d10/tutorial_js_root.html) — the JavaScript/WebAssembly port of OpenCV
 - [React Three Fiber](https://github.com/pmndrs/react-three-fiber) — the inspiration for using a custom React reconciler to drive a non-DOM library
+
+## License
+
+[MIT](./LICENSE)
