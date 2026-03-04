@@ -1,6 +1,6 @@
 {
   "name": "@react-opencv/fiber",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "repository": {
     "type": "git",
     "url": "https://github.com/erasta/react-opencv-fiber.git"
@@ -30,7 +30,8 @@
     "computer-vision"
   ],
   "scripts": {
-    "build": "vite build && tsc -p tsconfig.build.json"
+    "build": "vite build && tsc -p tsconfig.build.json",
+    "prepack": "cp ../README.md ../LICENSE ."
   },
   "dependencies": {
     "react-reconciler": "^0.33.0"
