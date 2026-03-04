@@ -9,7 +9,7 @@ import type { ReactNode, CSSProperties } from "react";
 import reconciler from "./reconciler";
 import { CvNode } from "./CvNode";
 import { executePipeline } from "./executePipeline";
-import { useOpenCV } from "../components/OpenCVProvider";
+import { useOpenCv } from "../components/OpenCvProvider";
 import type { Mat } from "../types";
 
 export interface CvCanvasProps {
@@ -29,7 +29,7 @@ export const CvCanvas = forwardRef<HTMLCanvasElement, CvCanvasProps>(
     const canvasRef = useRef<HTMLCanvasElement>(null);
     useImperativeHandle(ref, () => canvasRef.current!);
 
-    const { cv } = useOpenCV();
+    const { cv } = useOpenCv();
     const containerRef = useRef<ReturnType<typeof reconciler.createContainer> | null>(null);
     const rootNodeRef = useRef<CvNode | null>(null);
     const rafRef = useRef<number>(0);

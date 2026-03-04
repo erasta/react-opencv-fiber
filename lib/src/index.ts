@@ -1,4 +1,4 @@
-export { OpenCVProvider, useOpenCV } from "./components/OpenCVProvider";
+export { OpenCvProvider, useOpenCv } from "./components/OpenCvProvider";
 export { CvCanvas } from "./fiber/CvCanvas";
 export type { CvCanvasProps } from "./fiber/CvCanvas";
 export type { CvOpProps } from "./fiber/types";
