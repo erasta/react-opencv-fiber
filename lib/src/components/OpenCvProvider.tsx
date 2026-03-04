@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import type { OpenCVContextValue } from "../types";
 
 const OpenCvContext = createContext<OpenCVContextValue | null>(null);
@@ -51,18 +51,16 @@ export const OpenCvProvider = ({
     }
     window.Module = moduleConfig
 
-    const generateOpenCvScriptTag = () => {
-      const js = document.createElement('script');
-      js.id = scriptId;
-      js.src = openCvPath || `https://docs.opencv.org/${openCvVersion}/opencv.js`;
-      // js.nonce = true;
-      js.defer = true;
-      js.async = true;
-      if (verbose) console.log('OpenCV loading from ' + js.src);
-      return js
-    }
+    const element = document.createElement('script');
+    element.id = scriptId;
+    element.src = openCvPath || `https://docs.opencv.org/${openCvVersion}/opencv.js`;
+    // js.nonce = true;
+    element.defer = true;
+    element.async = true;
+    
+    if (verbose) console.log('OpenCV loading from ' + element.src);
 
-    document.body.appendChild(generateOpenCvScriptTag())
+    document.body.appendChild(element)
   }, [openCvPath, openCvVersion])
 
   return (
