@@ -15,7 +15,7 @@ import {
   Drawer,
 } from "@mui/material";
 import { UploadFile } from "@mui/icons-material";
-import { OpenCVProvider, useOpenCV, CvCanvas } from "react-opencv-fiber";
+import { OpenCvProvider, useOpenCv, CvCanvas } from "react-opencv-fiber";
 
 const darkTheme = createTheme({
   palette: {
@@ -33,7 +33,7 @@ const SIDEBAR_WIDTH = 360;
 const DEMO_IMAGE = "https://picsum.photos/seed/opencv-demo/600/400";
 
 function App() {
-  const { loading, error } = useOpenCV();
+  const { loading, error } = useOpenCv();
   const [imageSrc, setImageSrc] = useState(DEMO_IMAGE);
 
   const [blurKsize, setBlurKsize] = useState(5);
@@ -169,9 +169,9 @@ export default function Root() {
   return (
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
-      <OpenCVProvider>
+      <OpenCvProvider>
         <App />
-      </OpenCVProvider>
+      </OpenCvProvider>
     </ThemeProvider>
   );
 }
