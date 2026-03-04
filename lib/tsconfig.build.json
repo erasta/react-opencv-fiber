@@ -6,6 +6,7 @@
     "declaration": true,
     "declarationDir": "dist",
     "allowImportingTsExtensions": false,
+    "resolveJsonModule": true,
     "types": []
   }
 }

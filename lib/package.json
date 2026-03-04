@@ -30,7 +30,7 @@
     "computer-vision"
   ],
   "scripts": {
-    "build": "vite build && tsc -p tsconfig.build.json",
+    "build": "vite build && tsc -p tsconfig.build.json && mkdir -p dist/data && cp src/data/opencv-signatures.json dist/data/",
     "prepack": "cp ../README.md ../LICENSE ."
   },
   "dependencies": {
