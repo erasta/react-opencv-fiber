@@ -1,0 +1,38 @@
+{
+  "name": "react-opencv-fiber",
+  "version": "0.1.0",
+  "description": "A React reconciler for building OpenCV.js image-processing pipelines declaratively",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/erasta/react-opencv-fiber.git"
+  },
+  "keywords": [
+    "react",
+    "opencv",
+    "fiber",
+    "reconciler",
+    "image-processing",
+    "computer-vision"
+  ],
+  "scripts": {
+    "build": "tsc && cp src/index.ts dist/index.js"
+  },
+  "dependencies": {
+    "@react-opencv/fiber": "*"
+  }
+}
