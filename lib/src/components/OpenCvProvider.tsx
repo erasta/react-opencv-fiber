@@ -33,6 +33,7 @@ export const OpenCvProvider = ({
     cv: null,
     loading: true,
     error: null,
+    loaded: false,
   });
 
   useEffect(() => {
@@ -46,7 +47,7 @@ export const OpenCvProvider = ({
     // https://medium.com/code-divoire/integrating-opencv-js-with-an-angular-application-20ae11c7e217
     // https://stackoverflow.com/questions/56671436/cv-mat-is-not-a-constructor-opencv
     moduleConfig.onRuntimeInitialized = () => {
-      setCvInstance({ loading: true, error: null, cv: window.cv });
+      setCvInstance({ loading: false, loaded: true, error: null, cv: window.cv });
       if (verbose) console.log(`OpenCV loaded in ${Date.now() - startTime}ms`);
     }
     window.Module = moduleConfig
@@ -57,7 +58,7 @@ export const OpenCvProvider = ({
     // js.nonce = true;
     element.defer = true;
     element.async = true;
-    
+
     if (verbose) console.log('OpenCV loading from ' + element.src);
 
     document.body.appendChild(element)

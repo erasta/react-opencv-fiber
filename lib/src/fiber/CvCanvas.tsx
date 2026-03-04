@@ -1,7 +1,6 @@
 import {
   useRef,
   useEffect,
-  useCallback,
   forwardRef,
   useImperativeHandle,
 } from "react";
@@ -29,7 +28,7 @@ export const CvCanvas = forwardRef<HTMLCanvasElement, CvCanvasProps>(
     const canvasRef = useRef<HTMLCanvasElement>(null);
     useImperativeHandle(ref, () => canvasRef.current!);
 
-    const { cv } = useOpenCv();
+    const { cv, loaded } = useOpenCv();
     const containerRef = useRef<ReturnType<typeof reconciler.createContainer> | null>(null);
     const rootNodeRef = useRef<CvNode | null>(null);
     const rafRef = useRef<number>(0);
@@ -37,37 +36,36 @@ export const CvCanvas = forwardRef<HTMLCanvasElement, CvCanvasProps>(
     const onResultRef = useRef(onResult);
     onResultRef.current = onResult;
 
-    const runPipeline = useCallback(async () => {
-      if (!cv || !rootNodeRef.current) return;
-      try {
-        const mat = await executePipeline(cv, rootNodeRef.current);
-        if (!mat) return;
-
-        // Clean up previous result mat
-        if (prevMatRef.current) {
-          try { prevMatRef.current.delete(); } catch { /* noop */ }
-        }
-        prevMatRef.current = mat;
-
-        const canvas = canvasRef.current;
-        if (canvas) {
-          cv.imshow(canvas, mat);
-        }
-        onResultRef.current?.(mat);
-      } catch (e) {
-        console.warn("Pipeline execution error:", e);
-      }
-    }, [cv]);
-
-    const scheduleRun = useCallback(() => {
-      cancelAnimationFrame(rafRef.current);
-      rafRef.current = requestAnimationFrame(() => {
-        void runPipeline();
-      });
-    }, [runPipeline]);
-
     // Create reconciler container once
     useEffect(() => {
+      const runPipeline = async () => {
+        if (!cv || !rootNodeRef.current) return;
+        try {
+          const mat = await executePipeline(cv, rootNodeRef.current);
+          if (!mat) return;
+
+          if (prevMatRef.current) {
+            try { prevMatRef.current.delete(); } catch { /* noop */ }
+          }
+          prevMatRef.current = mat;
+
+          const canvas = canvasRef.current;
+          if (canvas) {
+            cv.imshow(canvas, mat);
+          }
+          onResultRef.current?.(mat);
+        } catch (e) {
+          console.warn("Pipeline execution error:", e);
+        }
+      };
+
+      const scheduleRun = () => {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = requestAnimationFrame(() => {
+          void runPipeline();
+        });
+      };
+
       const rootNode = new CvNode("__root__", {});
       rootNode._rootNotify = scheduleRun;
       rootNodeRef.current = rootNode;
@@ -95,21 +93,23 @@ export const CvCanvas = forwardRef<HTMLCanvasElement, CvCanvasProps>(
           prevMatRef.current = null;
         }
       };
-    }, [scheduleRun]);
+    }, [cv]);
 
     // Update fiber tree when children change
     useEffect(() => {
       if (containerRef.current) {
         reconciler.updateContainer(children, containerRef.current, null);
       }
-    }, [children]);
+    }, [cv, children]);
 
-    return (
-      <canvas
-        ref={canvasRef}
-        style={style}
-        className={className}
-      />
-    );
+    return loaded
+      ? (
+        <canvas
+          ref={canvasRef}
+          style={style}
+          className={className}
+        />
+      )
+      : null;
   },
 );

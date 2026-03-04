@@ -11,6 +11,7 @@ export type Mat = any;
 export interface OpenCVContextValue {
   cv: CV | null;
   loading: boolean;
+  loaded: boolean;
   error: string | null;
 }
 
