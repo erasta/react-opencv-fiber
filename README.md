@@ -1,5 +1,7 @@
 # react-opencv-fiber
 
+![npm version](https://img.shields.io/npm/v/@react-opencv/fiber.svg)
+
 A React renderer for OpenCV.js. Write image-processing pipelines as JSX — each element maps to an OpenCV operation, and the tree executes bottom-up through a custom React reconciler.
 
 [**Live demo**](https://erasta.github.io/react-opencv-fiber/)
