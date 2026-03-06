@@ -4,6 +4,16 @@ import { OpenCvProvider, CvCanvas } from "@react-opencv/fiber";
 
 const defaultSrc = "https://picsum.photos/seed/opencv-demo/600/400";
 
+const pipeline = `<CvCanvas>
+  <cvCanny threshold1={t1} threshold2={t2}>
+    <cvCvtColor code={11}>
+      <cvGaussianBlur ksize={[5, 5]} sigmaX={0}>
+        <cvImage src={imageSrc} />
+      </cvGaussianBlur>
+    </cvCvtColor>
+  </cvCanny>
+</CvCanvas>`;
+
 const App = () => {
   const [threshold1, setThreshold1] = useState(50);
   const [threshold2, setThreshold2] = useState(100);
@@ -18,17 +28,11 @@ const App = () => {
   };
 
   return (
-    <>
-      <h1>
-        <a href="https://github.com/erasta/react-opencv-fiber">
-          @react-opencv/fiber
-        </a>
-      </h1>
-      <div>
-        <label>
-          <span style={{ display: "inline-block", width: 150 }}>
-            Threshold 1: {threshold1}
-          </span>
+    <div style={{ padding: 20, maxWidth: 800 }}>
+      <h3 style={{ margin: "0 0 12px", color: "#c0b0d0" }}>Canny + Gaussian Blur</h3>
+      <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 12 }}>
+        <label style={{ display: "flex", alignItems: "center" }}>
+          <span style={{ display: "inline-block", width: 160 }}>Threshold 1: {threshold1}</span>
           <input
             type="range"
             min={0}
@@ -37,12 +41,8 @@ const App = () => {
             onChange={(e) => setThreshold1(Number(e.target.value))}
           />
         </label>
-      </div>
-      <div>
-        <label>
-          <span style={{ display: "inline-block", width: 150 }}>
-            Threshold 2: {threshold2}
-          </span>
+        <label style={{ display: "flex", alignItems: "center" }}>
+          <span style={{ display: "inline-block", width: 160 }}>Threshold 2: {threshold2}</span>
           <input
             type="range"
             min={0}
@@ -52,7 +52,7 @@ const App = () => {
           />
         </label>
       </div>
-      <div>
+      <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 12 }}>
         <input
           ref={fileInputRef}
           type="file"
@@ -60,9 +60,10 @@ const App = () => {
           style={{ display: "none" }}
           onChange={handleUpload}
         />
-        <button onClick={() => fileInputRef.current?.click()}>
-          Upload Image
-        </button>
+        <button onClick={() => fileInputRef.current?.click()}>Upload</button>
+        <a href="https://github.com/erasta/react-opencv-fiber" style={{ color: "#8070a0", fontSize: 12 }}>
+          GitHub
+        </a>
       </div>
       <CvCanvas style={{ maxWidth: "100%" }}>
         <cvCanny threshold1={threshold1} threshold2={threshold2}>
@@ -73,7 +74,10 @@ const App = () => {
           </cvCvtColor>
         </cvCanny>
       </CvCanvas>
-    </>
+      <pre style={{ marginTop: 16, color: "#9080b0", fontSize: 13 }}>
+        <code>{pipeline}</code>
+      </pre>
+    </div>
   );
 };
 
