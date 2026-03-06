@@ -1,14 +1,45 @@
 {
-  "name": "react-opencv-fiber-root",
-  "private": true,
-  "version": "0.0.0",
+  "name": "@react-opencv/fiber",
+  "version": "0.1.2",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/erasta/react-opencv-fiber.git"
+  },
+  "description": "A React reconciler for building OpenCV.js image-processing pipelines declaratively",
   "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "license": "MIT",
+  "keywords": [
+    "react",
+    "opencv",
+    "fiber",
+    "reconciler",
+    "image-processing",
+    "computer-vision"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "build:lib": "cd lib && npm run build",
+    "build": "vite build && tsc -p tsconfig.build.json && mkdir -p dist/data && cp src/data/opencv-signatures.json dist/data/",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "prepack": "npm run build"
+  },
+  "dependencies": {
+    "react-reconciler": "^0.33.0"
+  },
+  "peerDependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
@@ -23,7 +54,6 @@
     "globals": "^16.5.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "react-reconciler": "^0.33.0",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.48.0",
     "vite": "^7.3.1"
