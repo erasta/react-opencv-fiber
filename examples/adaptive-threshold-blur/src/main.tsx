@@ -2,7 +2,7 @@ import { StrictMode, useState, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import { OpenCvProvider, CvCanvas } from "@react-opencv/fiber";
 
-const defaultSrc = "https://picsum.photos/seed/opencv-demo/600/400";
+const defaultSrc = "https://picsum.photos/seed/threshold-text/600/400";
 
 const pipeline = `<CvCanvas>
   <cvAdaptiveThreshold maxValue={255} adaptiveMethod={1} thresholdType={0} blockSize={blockSize} C={c}>
@@ -80,15 +80,18 @@ const App = () => {
           GitHub
         </a>
       </div>
-      <CvCanvas style={{ maxWidth: "100%" }}>
-        <cvAdaptiveThreshold maxValue={255} adaptiveMethod={1} thresholdType={0} blockSize={blockSize} C={c}>
-          <cvCvtColor code={11}>
-            <cvStackBlur ksize={[blurKsize, blurKsize]}>
-              <cvImage src={imageSrc} />
-            </cvStackBlur>
-          </cvCvtColor>
-        </cvAdaptiveThreshold>
-      </CvCanvas>
+      <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+        <CvCanvas style={{ maxWidth: "100%", flex: 1 }}>
+          <cvAdaptiveThreshold maxValue={255} adaptiveMethod={1} thresholdType={0} blockSize={blockSize} C={c}>
+            <cvCvtColor code={11}>
+              <cvStackBlur ksize={[blurKsize, blurKsize]}>
+                <cvImage src={imageSrc} />
+              </cvStackBlur>
+            </cvCvtColor>
+          </cvAdaptiveThreshold>
+        </CvCanvas>
+        <img src={imageSrc} style={{ width: "33%", borderRadius: 4, opacity: 0.85 }} />
+      </div>
       <pre style={{ marginTop: 16, color: "#9080b0", fontSize: 13 }}>
         <code>{pipeline}</code>
       </pre>

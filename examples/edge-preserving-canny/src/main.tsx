@@ -2,7 +2,7 @@ import { StrictMode, useState, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import { OpenCvProvider, CvCanvas } from "@react-opencv/fiber";
 
-const defaultSrc = "https://picsum.photos/seed/opencv-demo/600/400";
+const defaultSrc = "https://picsum.photos/seed/landscape-hills/600/400";
 
 const pipeline = `<CvCanvas>
   <cvCanny threshold1={t1} threshold2={t2}>
@@ -53,17 +53,20 @@ const App = () => {
         <button onClick={() => fileInputRef.current?.click()}>Upload</button>
         <a href="https://github.com/erasta/react-opencv-fiber" style={{ color: "#8070a0", fontSize: 12 }}>GitHub</a>
       </div>
-      <CvCanvas style={{ maxWidth: "100%" }}>
-        <cvCanny threshold1={threshold1} threshold2={threshold2}>
-          <cvCvtColor code={6}>
-            <cvEdgePreservingFilter flags={1} sigma_s={sigmaS} sigma_r={0.4}>
-              <cvCvtColor code={3}>
-                <cvImage src={imageSrc} />
-              </cvCvtColor>
-            </cvEdgePreservingFilter>
-          </cvCvtColor>
-        </cvCanny>
-      </CvCanvas>
+      <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+        <CvCanvas style={{ maxWidth: "100%", flex: 1 }}>
+          <cvCanny threshold1={threshold1} threshold2={threshold2}>
+            <cvCvtColor code={6}>
+              <cvEdgePreservingFilter flags={1} sigma_s={sigmaS} sigma_r={0.4}>
+                <cvCvtColor code={3}>
+                  <cvImage src={imageSrc} />
+                </cvCvtColor>
+              </cvEdgePreservingFilter>
+            </cvCvtColor>
+          </cvCanny>
+        </CvCanvas>
+        <img src={imageSrc} style={{ width: "33%", borderRadius: 4, opacity: 0.85 }} />
+      </div>
       <pre style={{ marginTop: 16, color: "#9080b0", fontSize: 13 }}><code>{pipeline}</code></pre>
     </div>
   );

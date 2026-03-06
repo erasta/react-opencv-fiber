@@ -2,7 +2,7 @@ import { StrictMode, useState, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import { OpenCvProvider, CvCanvas } from "@react-opencv/fiber";
 
-const defaultSrc = "https://picsum.photos/seed/opencv-demo/600/400";
+const defaultSrc = "https://picsum.photos/seed/portrait-face/600/400";
 
 const pipeline = `<CvCanvas>
   <cvMedianBlur ksize={ksize}>
@@ -61,15 +61,18 @@ const App = () => {
           GitHub
         </a>
       </div>
-      <CvCanvas style={{ maxWidth: "100%" }}>
-        <cvMedianBlur ksize={ksize}>
-          <cvEqualizeHist>
-            <cvCvtColor code={11}>
-              <cvImage src={imageSrc} />
-            </cvCvtColor>
-          </cvEqualizeHist>
-        </cvMedianBlur>
-      </CvCanvas>
+      <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+        <CvCanvas style={{ maxWidth: "100%", flex: 1 }}>
+          <cvMedianBlur ksize={ksize}>
+            <cvEqualizeHist>
+              <cvCvtColor code={11}>
+                <cvImage src={imageSrc} />
+              </cvCvtColor>
+            </cvEqualizeHist>
+          </cvMedianBlur>
+        </CvCanvas>
+        <img src={imageSrc} style={{ width: "33%", borderRadius: 4, opacity: 0.85 }} />
+      </div>
       <pre style={{ marginTop: 16, color: "#9080b0", fontSize: 13 }}>
         <code>{pipeline}</code>
       </pre>

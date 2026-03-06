@@ -2,7 +2,7 @@ import { StrictMode, useState, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import { OpenCvProvider, CvCanvas } from "@react-opencv/fiber";
 
-const defaultSrc = "https://picsum.photos/seed/opencv-demo/600/400";
+const defaultSrc = "https://picsum.photos/seed/city-buildings/600/400";
 
 const pipeline = `<CvCanvas>
   <cvConvertScaleAbs alpha={alpha}>
@@ -53,17 +53,20 @@ const App = () => {
         <button onClick={() => fileInputRef.current?.click()}>Upload</button>
         <a href="https://github.com/erasta/react-opencv-fiber" style={{ color: "#8070a0", fontSize: 12 }}>GitHub</a>
       </div>
-      <CvCanvas style={{ maxWidth: "100%" }}>
-        <cvConvertScaleAbs alpha={alpha}>
-          <cvLaplacian ddepth={5} ksize={lapKsize}>
-            <cvCvtColor code={11}>
-              <cvGaussianBlur ksize={[blurKsize, blurKsize]} sigmaX={0}>
-                <cvImage src={imageSrc} />
-              </cvGaussianBlur>
-            </cvCvtColor>
-          </cvLaplacian>
-        </cvConvertScaleAbs>
-      </CvCanvas>
+      <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+        <CvCanvas style={{ maxWidth: "100%", flex: 1 }}>
+          <cvConvertScaleAbs alpha={alpha}>
+            <cvLaplacian ddepth={5} ksize={lapKsize}>
+              <cvCvtColor code={11}>
+                <cvGaussianBlur ksize={[blurKsize, blurKsize]} sigmaX={0}>
+                  <cvImage src={imageSrc} />
+                </cvGaussianBlur>
+              </cvCvtColor>
+            </cvLaplacian>
+          </cvConvertScaleAbs>
+        </CvCanvas>
+        <img src={imageSrc} style={{ width: "33%", borderRadius: 4, opacity: 0.85 }} />
+      </div>
       <pre style={{ marginTop: 16, color: "#9080b0", fontSize: 13 }}><code>{pipeline}</code></pre>
     </div>
   );
