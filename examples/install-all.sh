@@ -6,4 +6,4 @@ for dir in */; do
     (cd "$dir" && npm install && npm run build)
   fi
 done
-echo "Done. Open gallery.html in a browser."
+echo "Done. Open index.html in a browser."
