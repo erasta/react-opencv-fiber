@@ -5,11 +5,11 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "use:local": "npm install @react-opencv/fiber@file:..",
+    "use:local": "npm install @react-opencv/fiber@file:../..",
     "use:remote": "npm install @react-opencv/fiber@latest"
   },
   "dependencies": {
-    "@react-opencv/fiber": "file:..",
+    "@react-opencv/fiber": "file:../..",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
