@@ -14,9 +14,11 @@ const colormapNames: Record<number, string> = {
 
 const pipeline = `<CvCanvas>
   <cvApplyColorMap colormap={colormap}>
-    <cvGaussianBlur ksize={[k, k]} sigmaX={0}>
-      <cvImage src={imageSrc} />
-    </cvGaussianBlur>
+    <cvCvtColor code={11}>
+      <cvGaussianBlur ksize={[k, k]} sigmaX={0}>
+        <cvImage src={imageSrc} />
+      </cvGaussianBlur>
+    </cvCvtColor>
   </cvApplyColorMap>
 </CvCanvas>`;
 
@@ -78,9 +80,11 @@ const App = () => {
       </div>
       <CvCanvas style={{ maxWidth: "100%" }}>
         <cvApplyColorMap colormap={colormap}>
-          <cvGaussianBlur ksize={[blurKsize, blurKsize]} sigmaX={0}>
-            <cvImage src={imageSrc} />
-          </cvGaussianBlur>
+          <cvCvtColor code={11}>
+            <cvGaussianBlur ksize={[blurKsize, blurKsize]} sigmaX={0}>
+              <cvImage src={imageSrc} />
+            </cvGaussianBlur>
+          </cvCvtColor>
         </cvApplyColorMap>
       </CvCanvas>
       <pre style={{ marginTop: 16, color: "#9080b0", fontSize: 13 }}>

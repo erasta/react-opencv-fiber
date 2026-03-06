@@ -6,11 +6,11 @@ const defaultSrc = "https://picsum.photos/seed/opencv-demo/600/400";
 
 const pipeline = `<CvCanvas>
   <cvMedianBlur ksize={ksize}>
-    <cvCvtColor code={11}>
-      <cvEqualizeHist>
+    <cvEqualizeHist>
+      <cvCvtColor code={11}>
         <cvImage src={imageSrc} />
-      </cvEqualizeHist>
-    </cvCvtColor>
+      </cvCvtColor>
+    </cvEqualizeHist>
   </cvMedianBlur>
 </CvCanvas>`;
 
@@ -63,11 +63,11 @@ const App = () => {
       </div>
       <CvCanvas style={{ maxWidth: "100%" }}>
         <cvMedianBlur ksize={ksize}>
-          <cvCvtColor code={11}>
-            <cvEqualizeHist>
+          <cvEqualizeHist>
+            <cvCvtColor code={11}>
               <cvImage src={imageSrc} />
-            </cvEqualizeHist>
-          </cvCvtColor>
+            </cvCvtColor>
+          </cvEqualizeHist>
         </cvMedianBlur>
       </CvCanvas>
       <pre style={{ marginTop: 16, color: "#9080b0", fontSize: 13 }}>
