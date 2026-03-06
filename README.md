@@ -97,14 +97,17 @@ Special element that loads an image (URL or data URI) into a `Mat`.
 <cvImage src="https://example.com/photo.jpg" />
 ```
 
-## Demo
+## Examples
 
-The `demo/` directory contains a small app with a slider-driven pipeline (blur + grayscale + Canny edge detection). To run it:
+The `examples/` directory contains interactive demos with different filter combinations. [**Live demo**](https://erasta.github.io/react-opencv-fiber/)
+
+To run locally:
 
 ```sh
 npm install
-cd demo && npm install
-npm run dev
+npm run build
+sh examples/install-all.sh
+npx http-server examples -c-1
 ```
 
 ## Acknowledgements

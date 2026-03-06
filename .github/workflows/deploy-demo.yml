@@ -1,4 +1,4 @@
-name: Deploy demo to GitHub Pages
+name: Deploy examples to GitHub Pages
 
 on:
   push:
@@ -29,16 +29,27 @@ jobs:
 
       - run: npm ci
 
-      - run: npm ci
-        working-directory: demo
-
       - run: npm run build
+
+      - run: sh examples/install-all.sh
+
+      - name: Assemble pages output
+        run: |
+          mkdir -p _site
+          cp examples/index.html _site/
+          for dir in examples/*/; do
+            name=$(basename "$dir")
+            if [ -d "$dir/dist" ]; then
+              mkdir -p "_site/$name"
+              cp -r "$dir/dist" "_site/$name/dist"
+            fi
+          done
 
       - uses: actions/configure-pages@v5
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: demo/dist
+          path: _site
 
       - id: deployment
         uses: actions/deploy-pages@v4
