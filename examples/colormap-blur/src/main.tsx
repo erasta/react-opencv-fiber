@@ -42,8 +42,8 @@ const App = () => {
       <h3 style={{ margin: "0 0 12px", color: "#c0b0d0" }}>Colormap + Gaussian Blur</h3>
       <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 12 }}>
         <label style={{ display: "flex", alignItems: "center" }}>
-          <span style={{ display: "inline-block", width: 160 }}>
-            Colormap: {colormap} ({colormapNames[colormap]})
+          <span style={{ display: "inline-block", width: 220 }}>
+            colormap: {colormapNames[colormap]}
           </span>
           <input
             type="range"
@@ -54,7 +54,7 @@ const App = () => {
           />
         </label>
         <label style={{ display: "flex", alignItems: "center" }}>
-          <span style={{ display: "inline-block", width: 160 }}>Blur ksize: {blurKsize}</span>
+          <span style={{ display: "inline-block", width: 220 }}>blur ksize: {blurKsize}</span>
           <input
             type="range"
             min={1}

@@ -4,6 +4,14 @@ import { OpenCvProvider, CvCanvas } from "@react-opencv/fiber";
 
 const defaultSrc = "https://picsum.photos/seed/opencv-demo/600/400";
 
+const colormapNames: Record<number, string> = {
+  0: "AUTUMN", 1: "BONE", 2: "JET", 3: "WINTER", 4: "RAINBOW",
+  5: "OCEAN", 6: "SUMMER", 7: "SPRING", 8: "COOL", 9: "HSV",
+  10: "PINK", 11: "HOT", 12: "PARULA", 13: "MAGMA", 14: "INFERNO",
+  15: "PLASMA", 16: "VIRIDIS", 17: "CIVIDIS", 18: "TWILIGHT",
+  19: "TWILIGHT_SHIFTED", 20: "TURBO", 21: "DEEPGREEN",
+};
+
 const pipeline = `<CvCanvas>
   <cvApplyColorMap colormap={colormap}>
     <cvConvertScaleAbs alpha={alpha}>
@@ -33,17 +41,17 @@ const App = () => {
       <h3 style={{ margin: "0 0 12px", color: "#c0b0d0" }}>Sobel + ColorMap</h3>
       <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 12 }}>
         <label style={{ display: "flex", alignItems: "center" }}>
-          <span style={{ display: "inline-block", width: 160 }}>ksize: {ksize}</span>
+          <span style={{ display: "inline-block", width: 220 }}>ksize: {ksize}</span>
           <input type="range" min={1} max={7} step={2} value={ksize}
             onChange={(e) => setKsize(Number(e.target.value))} />
         </label>
         <label style={{ display: "flex", alignItems: "center" }}>
-          <span style={{ display: "inline-block", width: 160 }}>alpha: {alpha}</span>
+          <span style={{ display: "inline-block", width: 220 }}>alpha: {alpha}</span>
           <input type="range" min={1} max={10} step={0.5} value={alpha}
             onChange={(e) => setAlpha(Number(e.target.value))} />
         </label>
         <label style={{ display: "flex", alignItems: "center" }}>
-          <span style={{ display: "inline-block", width: 160 }}>colormap: {colormap}</span>
+          <span style={{ display: "inline-block", width: 220 }}>colormap: {colormapNames[colormap]}</span>
           <input type="range" min={0} max={21} value={colormap}
             onChange={(e) => setColormap(Number(e.target.value))} />
         </label>
