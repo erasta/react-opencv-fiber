@@ -1,5 +1,11 @@
 # API Reference
 
+## Components
+
+- [Components](components.md) — `<OpenCvProvider>`, `useOpenCv()`, `<CvCanvas>`, `<cvImage>`, `<cvMat>`, `__srcParam`/`__dstParam`
+
+## CV Operations
+
 Per-operation reference with props and usage examples.
 
 - [Image Filtering](image-filtering.md) — `bilateralFilter`, `blur`, `boxFilter`, `dilate`, `erode`, `filter2D`, `GaussianBlur`, `Laplacian`, `medianBlur`, `morphologyEx`, `pyrDown`, `pyrUp`, `Scharr`, `sepFilter2D`, `Sobel`

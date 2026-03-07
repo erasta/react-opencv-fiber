@@ -174,6 +174,12 @@ for (const [slug, cat] of Object.entries(cats)) {
 let index = [];
 index.push('# API Reference');
 index.push('');
+index.push('## Components');
+index.push('');
+index.push('- [Components](components.md) — `<OpenCvProvider>`, `useOpenCv()`, `<CvCanvas>`, `<cvImage>`, `<cvMat>`, `__srcParam`/`__dstParam`');
+index.push('');
+index.push('## CV Operations');
+index.push('');
 index.push('Per-operation reference with props and usage examples.');
 index.push('');
 for (const [slug, cat] of Object.entries(cats)) {
