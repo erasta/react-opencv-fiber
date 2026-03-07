@@ -1,7 +1,35 @@
 #!/usr/bin/env node
-import { firefox } from "playwright";
 import { execSync } from "child_process";
-import { mkdirSync, rmSync } from "fs";
+import { mkdirSync, rmSync, existsSync } from "fs";
+
+// --- Preflight checks ---
+
+// Check for convert (ImageMagick)
+try {
+  execSync("which convert", { stdio: "ignore" });
+} catch {
+  console.error("Error: 'convert' (ImageMagick) not found. Install it with: sudo apt install imagemagick");
+  process.exit(1);
+}
+
+// Check for Playwright Firefox
+let firefox;
+try {
+  ({ firefox } = await import("playwright"));
+} catch {
+  console.error("Error: 'playwright' package not found. Install it with: npm install -D playwright");
+  process.exit(1);
+}
+
+try {
+  const testBrowser = await firefox.launch({ headless: true });
+  await testBrowser.close();
+} catch {
+  console.error("Error: Playwright Firefox browser not installed. Run: npx playwright install firefox");
+  process.exit(1);
+}
+
+// --- Config ---
 
 const slug = process.argv[2] || "canny-gaussian";
 const baseUrl = process.argv[3] || "http://localhost:5199";
@@ -11,13 +39,20 @@ const FRAME_DELAY = 800; // ms to wait after each slider change
 const INITIAL_WAIT = 5000; // ms to wait for OpenCV to load
 const STEPS = 12; // number of slider positions per slider
 
+// --- Capture ---
+
 rmSync(framesDir, { recursive: true, force: true });
 mkdirSync(framesDir, { recursive: true });
 
+console.log(`Launching headless Firefox...`);
 const browser = await firefox.launch({ headless: true });
 const page = await browser.newPage();
 await page.setViewportSize({ width: 1280, height: 900 });
+
+console.log(`Navigating to ${baseUrl}/#${slug}`);
 await page.goto(`${baseUrl}/#${slug}`, { waitUntil: "networkidle" });
+
+console.log(`Waiting ${INITIAL_WAIT / 1000}s for OpenCV to load...`);
 await page.waitForTimeout(INITIAL_WAIT);
 
 const sliders = await page.locator('input[type="range"]').all();
@@ -49,7 +84,7 @@ for (let si = 0; si < sliders.length; si++) {
   const max = Number(await slider.getAttribute("max"));
   const step = Number((await slider.getAttribute("step")) || "1");
 
-  console.log(`Slider ${si}: min=${min} max=${max} step=${step}`);
+  console.log(`Sweeping slider ${si}: min=${min} max=${max} step=${step}`);
 
   const values = [];
   const range = max - min;
