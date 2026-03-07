@@ -137,10 +137,11 @@ Props map directly to OpenCV function parameters. Array values are coerced to th
 
 ### `__srcParam` / `__dstParam`
 
-By default, each operation is called as `cv.op(src, dst, ...params)`. Some functions use a different argument order. Use `__srcParam` and `__dstParam` to override the position:
+By default, each operation is called as `cv.op(src, dst, ...params)`. Some functions use a different argument order. Use `__srcParam` and `__dstParam` to override the position (as zero-based indices).
 
 ```tsx
-<cvApplyColorMap colormap={2} __dstParam={2}>
+{/* If an op expects cv.someOp(src, param1, dst), set dst to index 2 */}
+<cvSomeOp param1={42} __dstParam={2}>
   <cvImage src="photo.jpg" />
-</cvApplyColorMap>
+</cvSomeOp>
 ```
