@@ -3,8 +3,12 @@ import { execSync } from "child_process";
 import { mkdirSync, rmSync } from "fs";
 import { createConnection } from "net";
 import { tmpdir } from "os";
-import { join } from "path";
+import { dirname, join, resolve } from "path";
+import { fileURLToPath } from "url";
 import { parseArgs } from "util";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const rootDir = resolve(__dirname, "..");
 
 // --- Parse args ---
 
@@ -13,7 +17,7 @@ const { values: args } = parseArgs({
     slug:    { type: "string",  short: "s" },
     all:     { type: "boolean", short: "a", default: false },
     port:    { type: "string",  short: "p", default: "5199" },
-    outdir:  { type: "string",  short: "o", default: "gifs" },
+    outdir:  { type: "string",  short: "o", default: join(rootDir, "gifs") },
     steps:   { type: "string",  short: "n", default: "12" },
     delay:   { type: "string",  short: "d", default: "800" },
     wait:    { type: "string",  short: "w", default: "5000" },
@@ -23,7 +27,7 @@ const { values: args } = parseArgs({
 });
 
 if (args.help || (!args.slug && !args.all)) {
-  console.log(`Usage: node capture-gif.mjs [options]
+  console.log(`Usage: node scripts/capture-gif.mjs [options]
 
 Options:
   -s, --slug <name>    Example slug to capture
