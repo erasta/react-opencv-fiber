@@ -8,13 +8,13 @@ import { MedianEqualize } from "./MedianEqualize";
 import { StylizationDetail } from "./StylizationDetail";
 import { ThresholdBilateral } from "./ThresholdBilateral";
 
-export const examples: { name: string; component: ComponentType }[] = [
-  { name: "Canny + Gaussian", component: CannyGaussian },
-  { name: "Adaptive Threshold + Blur", component: AdaptiveThresholdBlur },
-  { name: "Edge-Preserving + Canny", component: EdgePreservingCanny },
-  { name: "Laplacian + Blur", component: LaplacianBlur },
-  { name: "MeanShift + Scharr", component: MeanshiftScharr },
-  { name: "Median + Equalize", component: MedianEqualize },
-  { name: "Stylization", component: StylizationDetail },
-  { name: "Threshold + Bilateral", component: ThresholdBilateral },
+export const examples: { name: string; slug: string; component: ComponentType }[] = [
+  { name: "Canny + Gaussian", slug: "canny-gaussian", component: CannyGaussian },
+  { name: "Adaptive Threshold + Blur", slug: "adaptive-threshold-blur", component: AdaptiveThresholdBlur },
+  { name: "Edge-Preserving + Canny", slug: "edge-preserving-canny", component: EdgePreservingCanny },
+  { name: "Laplacian + Blur", slug: "laplacian-blur", component: LaplacianBlur },
+  { name: "MeanShift + Scharr", slug: "meanshift-scharr", component: MeanshiftScharr },
+  { name: "Median + Equalize", slug: "median-equalize", component: MedianEqualize },
+  { name: "Stylization", slug: "stylization", component: StylizationDetail },
+  { name: "Threshold + Bilateral", slug: "threshold-bilateral", component: ThresholdBilateral },
 ];
