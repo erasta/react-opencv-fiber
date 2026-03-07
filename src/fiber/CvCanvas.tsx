@@ -16,6 +16,7 @@ export interface CvCanvasProps {
   children?: ReactNode;
   style?: CSSProperties;
   className?: string;
+  headless?: boolean;
   onResult?: (mat: Mat) => void;
 }
 
@@ -24,6 +25,7 @@ export const CvCanvas = forwardRef<HTMLCanvasElement, CvCanvasProps>(
     children,
     style,
     className,
+    headless,
     onResult,
   }: CvCanvasProps, ref) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -34,6 +36,7 @@ export const CvCanvas = forwardRef<HTMLCanvasElement, CvCanvasProps>(
     const rootNodeRef = useRef<CvNode | null>(null);
     const rafRef = useRef<number>(0);
     const prevMatRef = useRef<Mat | null>(null);
+    const resultCloneRef = useRef<Mat | null>(null);
     const onResultRef = useRef(onResult);
     onResultRef.current = onResult;
 
@@ -57,7 +60,14 @@ export const CvCanvas = forwardRef<HTMLCanvasElement, CvCanvasProps>(
           if (canvas) {
             cv.imshow(canvas, mat);
           }
-          onResultRef.current?.(mat);
+          if (onResultRef.current) {
+            if (resultCloneRef.current) {
+              try { resultCloneRef.current.delete(); } catch { /* noop */ }
+            }
+            const clone = mat.clone();
+            resultCloneRef.current = clone;
+            onResultRef.current(clone);
+          }
         } catch (e) {
           console.warn("Pipeline execution error:", e);
         }
@@ -96,6 +106,10 @@ export const CvCanvas = forwardRef<HTMLCanvasElement, CvCanvasProps>(
           try { prevMatRef.current.delete(); } catch { /* noop */ }
           prevMatRef.current = null;
         }
+        if (resultCloneRef.current) {
+          try { resultCloneRef.current.delete(); } catch { /* noop */ }
+          resultCloneRef.current = null;
+        }
       };
     }, [cv]);
 
@@ -106,14 +120,14 @@ export const CvCanvas = forwardRef<HTMLCanvasElement, CvCanvasProps>(
       }
     }, [cv, children]);
 
-    return loaded
-      ? (
-        <canvas
-          ref={canvasRef}
-          style={style}
-          className={className}
-        />
-      )
-      : null;
+    if (headless || !loaded) return null;
+
+    return (
+      <canvas
+        ref={canvasRef}
+        style={style}
+        className={className}
+      />
+    );
   },
 );

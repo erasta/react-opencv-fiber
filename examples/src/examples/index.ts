@@ -7,6 +7,7 @@ import { MeanshiftScharr } from "./MeanshiftScharr";
 import { MedianEqualize } from "./MedianEqualize";
 import { StylizationDetail } from "./StylizationDetail";
 import { ThresholdBilateral } from "./ThresholdBilateral";
+import { SplitPipeline } from "./SplitPipeline";
 
 export const examples: { name: string; slug: string; component: ComponentType }[] = [
   { name: "Canny + Gaussian", slug: "canny-gaussian", component: CannyGaussian },
@@ -17,4 +18,5 @@ export const examples: { name: string; slug: string; component: ComponentType }[
   { name: "Median + Equalize", slug: "median-equalize", component: MedianEqualize },
   { name: "Stylization", slug: "stylization", component: StylizationDetail },
   { name: "Threshold + Bilateral", slug: "threshold-bilateral", component: ThresholdBilateral },
+  { name: "Split Pipeline", slug: "split-pipeline", component: SplitPipeline },
 ];

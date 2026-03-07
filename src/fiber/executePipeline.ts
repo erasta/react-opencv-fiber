@@ -20,6 +20,10 @@ export async function executePipeline(
     return node.loadImage(cv);
   }
 
+  if (node.type === "__mat__") {
+    return node.cloneMat(cv);
+  }
+
   // Op node: execute child first (innermost), then apply this op
   if (node.children.length === 0) return null;
   const childMat = await executePipeline(cv, node.children[0], missingOps, debug);

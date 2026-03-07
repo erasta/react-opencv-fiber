@@ -59,6 +59,16 @@ export class CvNode {
     this.children = [];
   }
 
+  cloneMat(_cv: CV): Mat | null {
+    const mat = this.props.mat as Mat | null | undefined;
+    if (!mat) return null;
+    try {
+      return mat.clone();
+    } catch {
+      return null;
+    }
+  }
+
   async loadImage(cv: CV): Promise<Mat> {
     if (this.type !== "__image__") {
       throw new Error("loadImage called on non-image node");

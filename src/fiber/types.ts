@@ -19,6 +19,8 @@ type CvElements = {
 } & {
   cvImage: CvOpProps;
   cv_image: CvOpProps;
+  cvMat: CvOpProps;
+  cv_mat: CvOpProps;
 };
 
 declare module "react" {

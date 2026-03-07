@@ -9,6 +9,11 @@ export function resolveOpName(elementName: string): string {
     return "__image__";
   }
 
+  // cvMat / cv_mat → special leaf type (accepts an existing Mat)
+  if (elementName === "cvMat" || elementName === "cv_mat") {
+    return "__mat__";
+  }
+
   let name: string;
   if (elementName.startsWith("cv_")) {
     name = elementName.slice(3);
