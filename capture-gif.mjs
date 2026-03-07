@@ -2,13 +2,48 @@
 import { execSync } from "child_process";
 import { mkdirSync, rmSync } from "fs";
 import { createConnection } from "net";
+import { tmpdir } from "os";
+import { join } from "path";
+import { parseArgs } from "util";
 
-// --- Config ---
+// --- Parse args ---
 
-const slug = process.argv[2] || "canny-gaussian";
-const port = Number(process.argv[3]) || 5199;
-const outDir = process.argv[4] || "gifs";
+const { values: args } = parseArgs({
+  options: {
+    slug:    { type: "string",  short: "s", default: "canny-gaussian" },
+    port:    { type: "string",  short: "p", default: "5199" },
+    outdir:  { type: "string",  short: "o", default: "gifs" },
+    steps:   { type: "string",  short: "n", default: "12" },
+    delay:   { type: "string",  short: "d", default: "800" },
+    wait:    { type: "string",  short: "w", default: "5000" },
+    help:    { type: "boolean", short: "h", default: false },
+  },
+  strict: true,
+});
+
+if (args.help || process.argv.length <= 2) {
+  console.log(`Usage: node capture-gif.mjs [options]
+
+Options:
+  -s, --slug <name>    Example slug (default: canny-gaussian)
+  -p, --port <number>  Dev server port (default: 5199)
+  -o, --outdir <path>  Output directory for GIF (default: gifs)
+  -n, --steps <number> Slider positions per sweep (default: 12)
+  -d, --delay <ms>     Delay after each slider change (default: 800)
+  -w, --wait <ms>      Initial wait for OpenCV to load (default: 5000)
+  -h, --help           Show this help`);
+  process.exit(0);
+}
+
+const slug = args.slug;
+const port = Number(args.port);
+const outDir = args.outdir;
+const STEPS = Number(args.steps);
+const FRAME_DELAY = Number(args.delay);
+const INITIAL_WAIT = Number(args.wait);
 const baseUrl = `http://localhost:${port}`;
+const framesDir = join(tmpdir(), "capture-gif-frames");
+const outFile = join(outDir, `${slug}.gif`);
 
 // --- Preflight checks ---
 
@@ -50,13 +85,6 @@ try {
   console.error("Error: Playwright Firefox browser not installed. Run: npx playwright install firefox");
   process.exit(1);
 }
-import { tmpdir } from "os";
-import { join } from "path";
-const framesDir = join(tmpdir(), "capture-gif-frames");
-const outFile = join(outDir, `${slug}.gif`);
-const FRAME_DELAY = 800; // ms to wait after each slider change
-const INITIAL_WAIT = 5000; // ms to wait for OpenCV to load
-const STEPS = 12; // number of slider positions per slider
 
 // --- Capture ---
 
@@ -144,6 +172,7 @@ execSync(
   `convert -delay 8 -loop 0 ${framesDir}/frame-*.png -resize 800x ${outFile}`,
   { stdio: "inherit" }
 );
+
 // Cleanup temp frames
 rmSync(framesDir, { recursive: true, force: true });
 
