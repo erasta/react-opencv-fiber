@@ -70,19 +70,7 @@ Renders a `<canvas>` and executes the CV pipeline defined by its children.
 
 ### CV operation elements
 
-Any OpenCV function can be used as a JSX element with a `cv` prefix:
-
-| JSX element | OpenCV function |
-|---|---|
-| `<cvGaussianBlur ksize={[5,5]} sigmaX={0}>` | `cv.GaussianBlur(...)` |
-| `<cvCanny threshold1={50} threshold2={100}>` | `cv.Canny(...)` |
-| `<cvCvtColor code={11}>` | `cv.cvtColor(...)` |
-| `<cvThreshold thresh={127} maxval={255} type={0}>` | `cv.threshold(...)` |
-| `<cvResize dsize={[320, 240]}>` | `cv.resize(...)` |
-| `<cvMedianBlur ksize={5}>` | `cv.medianBlur(...)` |
-| `<cvBilateralFilter d={9} sigmaColor={75} sigmaSpace={75}>` | `cv.bilateralFilter(...)` |
-
-Operations are nested inside-out — the innermost element runs first:
+Any OpenCV function can be used as a JSX element with a `cv` prefix. Operations are nested inside-out — the innermost element runs first:
 
 ```tsx
 // Execution order: image load -> blur -> grayscale -> edge detection
@@ -96,6 +84,10 @@ Operations are nested inside-out — the innermost element runs first:
 ```
 
 Props map directly to OpenCV function parameters. Array values are coerced to the appropriate OpenCV types (`Size`, `Point`, `Scalar`).
+
+155 operations from the OpenCV.js 4.9.0 CDN build are supported. Operations missing from your build will log an error at runtime.
+
+**[API Reference — all operations with props and examples](docs/README.md)**
 
 #### `__srcParam` / `__dstParam`
 

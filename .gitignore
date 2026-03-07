@@ -26,3 +26,4 @@ dist-ssr
 scripts/.venv/
 *.tgz
 try/
+opencv.js.js
