@@ -10,7 +10,8 @@ import { parseArgs } from "util";
 
 const { values: args } = parseArgs({
   options: {
-    slug:    { type: "string",  short: "s", default: "canny-gaussian" },
+    slug:    { type: "string",  short: "s" },
+    all:     { type: "boolean", short: "a", default: false },
     port:    { type: "string",  short: "p", default: "5199" },
     outdir:  { type: "string",  short: "o", default: "gifs" },
     steps:   { type: "string",  short: "n", default: "12" },
@@ -21,13 +22,14 @@ const { values: args } = parseArgs({
   strict: true,
 });
 
-if (args.help || process.argv.length <= 2) {
+if (args.help || (!args.slug && !args.all)) {
   console.log(`Usage: node capture-gif.mjs [options]
 
 Options:
-  -s, --slug <name>    Example slug (default: canny-gaussian)
+  -s, --slug <name>    Example slug to capture
+  -a, --all            Capture all examples
   -p, --port <number>  Dev server port (default: 5199)
-  -o, --outdir <path>  Output directory for GIF (default: gifs)
+  -o, --outdir <path>  Output directory for GIFs (default: gifs)
   -n, --steps <number> Slider positions per sweep (default: 12)
   -d, --delay <ms>     Delay after each slider change (default: 800)
   -w, --wait <ms>      Initial wait for OpenCV to load (default: 5000)
@@ -35,7 +37,6 @@ Options:
   process.exit(0);
 }
 
-const slug = args.slug;
 const port = Number(args.port);
 const outDir = args.outdir;
 const STEPS = Number(args.steps);
@@ -43,11 +44,9 @@ const FRAME_DELAY = Number(args.delay);
 const INITIAL_WAIT = Number(args.wait);
 const baseUrl = `http://localhost:${port}`;
 const framesDir = join(tmpdir(), "capture-gif-frames");
-const outFile = join(outDir, `${slug}.gif`);
 
 // --- Preflight checks ---
 
-// Check for convert (ImageMagick)
 try {
   execSync("which convert", { stdio: "ignore" });
 } catch {
@@ -55,7 +54,6 @@ try {
   process.exit(1);
 }
 
-// Check dev server is running on port
 await new Promise((resolve, reject) => {
   const sock = createConnection({ port }, () => {
     sock.destroy();
@@ -69,7 +67,6 @@ await new Promise((resolve, reject) => {
   process.exit(1);
 });
 
-// Check for Playwright Firefox
 let firefox;
 try {
   ({ firefox } = await import("playwright"));
@@ -86,94 +83,112 @@ try {
   process.exit(1);
 }
 
+// --- Discover slugs ---
+
+let slugs;
+if (args.all) {
+  console.log(`Discovering examples from ${baseUrl}...`);
+  const browser = await firefox.launch({ headless: true });
+  const page = await browser.newPage();
+  await page.goto(baseUrl, { waitUntil: "networkidle" });
+  slugs = await page.locator('a[href^="#"]').evaluateAll((links) =>
+    links.map((a) => a.getAttribute("href").replace(/^#/, "")).filter(Boolean)
+  );
+  await browser.close();
+  console.log(`Found ${slugs.length} examples: ${slugs.join(", ")}`);
+} else {
+  slugs = [args.slug];
+}
+
 // --- Capture ---
 
-rmSync(framesDir, { recursive: true, force: true });
-mkdirSync(framesDir, { recursive: true });
 mkdirSync(outDir, { recursive: true });
 
-console.log(`Launching headless Firefox...`);
-const browser = await firefox.launch({ headless: true });
-const page = await browser.newPage();
-await page.setViewportSize({ width: 1280, height: 900 });
+async function captureExample(slug) {
+  const outFile = join(outDir, `${slug}.gif`);
 
-console.log(`Navigating to ${baseUrl}/#${slug}`);
-await page.goto(`${baseUrl}/#${slug}`, { waitUntil: "networkidle" });
+  rmSync(framesDir, { recursive: true, force: true });
+  mkdirSync(framesDir, { recursive: true });
 
-console.log(`Waiting ${INITIAL_WAIT / 1000}s for OpenCV to load...`);
-await page.waitForTimeout(INITIAL_WAIT);
+  console.log(`\n=== ${slug} ===`);
+  console.log(`Launching headless Firefox...`);
+  const browser = await firefox.launch({ headless: true });
+  const page = await browser.newPage();
+  await page.setViewportSize({ width: 1280, height: 900 });
 
-const sliders = await page.locator('input[type="range"]').all();
-console.log(`Found ${sliders.length} slider(s) for "${slug}"`);
+  console.log(`Navigating to ${baseUrl}/#${slug}`);
+  await page.goto(`${baseUrl}/#${slug}`, { waitUntil: "networkidle" });
 
-// Store original values
-const originals = [];
-for (const s of sliders) {
-  originals.push(await s.inputValue());
-}
+  console.log(`Waiting ${INITIAL_WAIT / 1000}s for OpenCV to load...`);
+  await page.waitForTimeout(INITIAL_WAIT);
 
-let frame = 0;
+  const sliders = await page.locator('input[type="range"]').all();
+  console.log(`Found ${sliders.length} slider(s)`);
 
-async function screenshot() {
-  const path = `${framesDir}/frame-${String(frame).padStart(4, "0")}.png`;
-  await page.waitForTimeout(FRAME_DELAY);
-  await page.screenshot({ path });
-  console.log(`  frame ${frame}`);
-  frame++;
-}
-
-// Take initial screenshot
-await screenshot();
-
-// For each slider, sweep it across its range and back
-for (let si = 0; si < sliders.length; si++) {
-  const slider = sliders[si];
-  const min = Number(await slider.getAttribute("min"));
-  const max = Number(await slider.getAttribute("max"));
-  const step = Number((await slider.getAttribute("step")) || "1");
-
-  console.log(`Sweeping slider ${si}: min=${min} max=${max} step=${step}`);
-
-  const values = [];
-  const range = max - min;
-  for (let i = 0; i <= STEPS; i++) {
-    const raw = min + (range * i) / STEPS;
-    const snapped = Math.round(raw / step) * step;
-    values.push(Math.min(snapped, max));
+  const originals = [];
+  for (const s of sliders) {
+    originals.push(await s.inputValue());
   }
 
-  // Forward sweep
-  for (const val of values) {
-    await slider.fill(String(val));
+  let frame = 0;
+
+  async function screenshot() {
+    const path = `${framesDir}/frame-${String(frame).padStart(4, "0")}.png`;
+    await page.waitForTimeout(FRAME_DELAY);
+    await page.screenshot({ path });
+    console.log(`  frame ${frame}`);
+    frame++;
+  }
+
+  await screenshot();
+
+  for (let si = 0; si < sliders.length; si++) {
+    const slider = sliders[si];
+    const min = Number(await slider.getAttribute("min"));
+    const max = Number(await slider.getAttribute("max"));
+    const step = Number((await slider.getAttribute("step")) || "1");
+
+    console.log(`Sweeping slider ${si}: min=${min} max=${max} step=${step}`);
+
+    const values = [];
+    const range = max - min;
+    for (let i = 0; i <= STEPS; i++) {
+      const raw = min + (range * i) / STEPS;
+      const snapped = Math.round(raw / step) * step;
+      values.push(Math.min(snapped, max));
+    }
+
+    for (const val of values) {
+      await slider.fill(String(val));
+      await slider.dispatchEvent("input");
+      await slider.dispatchEvent("change");
+      await screenshot();
+    }
+
+    for (const val of values.reverse().slice(1)) {
+      await slider.fill(String(val));
+      await slider.dispatchEvent("input");
+      await slider.dispatchEvent("change");
+      await screenshot();
+    }
+
+    await slider.fill(originals[si]);
     await slider.dispatchEvent("input");
     await slider.dispatchEvent("change");
-    await screenshot();
   }
 
-  // Sweep back
-  for (const val of values.reverse().slice(1)) {
-    await slider.fill(String(val));
-    await slider.dispatchEvent("input");
-    await slider.dispatchEvent("change");
-    await screenshot();
-  }
+  await browser.close();
 
-  // Restore original value
-  await slider.fill(originals[si]);
-  await slider.dispatchEvent("input");
-  await slider.dispatchEvent("change");
+  console.log(`Creating GIF with ${frame} frames...`);
+  execSync(
+    `convert -delay 8 -loop 0 ${framesDir}/frame-*.png -resize 800x ${outFile}`,
+    { stdio: "inherit" }
+  );
+
+  rmSync(framesDir, { recursive: true, force: true });
+  console.log(`Done: ${outFile}`);
 }
 
-await browser.close();
-
-// Combine frames into GIF
-console.log(`\nCreating GIF with ${frame} frames...`);
-execSync(
-  `convert -delay 8 -loop 0 ${framesDir}/frame-*.png -resize 800x ${outFile}`,
-  { stdio: "inherit" }
-);
-
-// Cleanup temp frames
-rmSync(framesDir, { recursive: true, force: true });
-
-console.log(`Done: ${outFile}`);
+for (const slug of slugs) {
+  await captureExample(slug);
+}
