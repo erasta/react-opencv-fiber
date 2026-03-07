@@ -154,7 +154,7 @@ async function captureExample(slug) {
     const range = max - min;
     for (let i = 0; i <= STEPS; i++) {
       const raw = min + (range * i) / STEPS;
-      const snapped = Math.round(raw / step) * step;
+      const snapped = min + Math.round((raw - min) / step) * step;
       values.push(Math.min(snapped, max));
     }
 
