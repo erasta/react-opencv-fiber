@@ -4,6 +4,29 @@ import type { Mat } from "@react-opencv/fiber";
 
 const defaultSrc = "https://picsum.photos/seed/split-pipe/600/400";
 
+const pipeline = `const [blurredMat, setBlurredMat] = useState<Mat | null>(null);
+
+{/* Headless: blur and share result */}
+<CvCanvas headless onResult={setBlurredMat}>
+  <cvGaussianBlur ksize={[ksize, ksize]} sigmaX={0}>
+    <cvImage src={imageSrc} />
+  </cvGaussianBlur>
+</CvCanvas>
+
+{/* Show blurred intermediate */}
+<CvCanvas>
+  <cvMat mat={blurredMat} />
+</CvCanvas>
+
+{/* Apply Canny on blurred result */}
+<CvCanvas>
+  <cvCanny threshold1={t1} threshold2={t2}>
+    <cvCvtColor code={11}>
+      <cvMat mat={blurredMat} />
+    </cvCvtColor>
+  </cvCanny>
+</CvCanvas>`;
+
 export const SplitPipeline = () => {
   const [ksize, setKsize] = useState(5);
   const [threshold1, setThreshold1] = useState(50);
@@ -79,6 +102,9 @@ export const SplitPipeline = () => {
           </CvCanvas>
         </div>
       </div>
+      <pre style={{ marginTop: 16, color: "#9080b0", fontSize: 13 }}>
+        <code>{pipeline}</code>
+      </pre>
     </div>
   );
 };

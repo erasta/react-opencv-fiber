@@ -54,13 +54,19 @@ Renders a `<canvas>` and executes the CV pipeline defined by its children.
 <CvCanvas
   style={{ maxWidth: "100%" }}
   className="my-canvas"
-  onResult={(mat) => { /* final Mat before display */ }}
+  onResult={(mat) => { /* cloned Mat of the final result */ }}
 >
   {/* CV operation tree */}
 </CvCanvas>
 ```
 
-Supports `ref` forwarding to the underlying canvas element.
+| Prop | Type | Description |
+|---|---|---|
+| `style` | `CSSProperties` | CSS styles for the canvas element |
+| `className` | `string` | CSS class for the canvas element |
+| `headless` | `boolean` | When `true`, runs the pipeline without rendering a canvas (returns `null`). Useful for producing intermediate results via `onResult`. |
+| `onResult` | `(mat: Mat) => void` | Called with a **cloned** Mat after each pipeline run. The clone stays valid across re-runs — you own it. |
+| `ref` | `Ref<HTMLCanvasElement>` | Forwarded to the underlying canvas element |
 
 ### CV operation elements
 
@@ -104,13 +110,56 @@ By default, each operation is called as `cv.op(src, dst, ...params)` — matchin
 </cvApplyColorMap>
 ```
 
-### `<cvImage>`
+### Special leaf elements
 
-Special element that loads an image (URL or data URI) into a `Mat`.
+These are leaf nodes that provide input to the pipeline (they have no children).
+
+#### `<cvImage>`
+
+Loads an image (URL or data URI) into a `Mat`.
 
 ```tsx
 <cvImage src="https://example.com/photo.jpg" />
 ```
+
+#### `<cvMat>`
+
+Accepts an existing `Mat` as pipeline input. The mat is **cloned internally**, so the original stays valid and is never disposed by the pipeline.
+
+```tsx
+<cvMat mat={someMatFromState} />
+```
+
+Use this to share the output of one pipeline as input to another (see [Sharing results between pipelines](#sharing-results-between-pipelines)).
+
+### Sharing results between pipelines
+
+Use `headless` mode to run a pipeline without a canvas, capture its result with `onResult`, and feed it into other pipelines via `<cvMat>`:
+
+```tsx
+const [blurredMat, setBlurredMat] = useState<Mat | null>(null);
+
+{/* Headless pipeline: blur and share result */}
+<CvCanvas headless onResult={setBlurredMat}>
+  <cvGaussianBlur ksize={[5, 5]} sigmaX={0}>
+    <cvImage src="photo.jpg" />
+  </cvGaussianBlur>
+</CvCanvas>
+
+{/* Display the blurred intermediate */}
+<CvCanvas>
+  <cvMat mat={blurredMat} />
+</CvCanvas>
+
+{/* Apply further operations on the shared result */}
+<CvCanvas>
+  <cvCanny threshold1={50} threshold2={150}>
+    <cvMat mat={blurredMat} />
+  </cvCanny>
+</CvCanvas>
+```
+
+Both `onResult` and `<cvMat>` clone the Mat, so there are no ownership conflicts — each pipeline manages its own memory.
 
 ## Examples
 
