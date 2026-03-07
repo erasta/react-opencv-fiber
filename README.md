@@ -103,13 +103,24 @@ Special element that loads an image (URL or data URI) into a `Mat`.
 
 The `examples/` directory contains interactive demos with different filter combinations. [**Live demo**](https://erasta.github.io/react-opencv-fiber/)
 
+| Canny + Gaussian | Adaptive Threshold + Blur |
+|:---:|:---:|
+| <img src="gifs/canny-gaussian.gif" width="400" /> | <img src="gifs/adaptive-threshold-blur.gif" width="400" /> |
+
+| Edge-Preserving + Canny | Laplacian + Blur |
+|:---:|:---:|
+| <img src="gifs/edge-preserving-canny.gif" width="400" /> | <img src="gifs/laplacian-blur.gif" width="400" /> |
+
+| Median + Equalize | |
+|:---:|:---:|
+| <img src="gifs/median-equalize.gif" width="400" /> | |
+
 To run locally:
 
 ```sh
 npm install
 npm run build
-sh examples/install-all.sh
-npx http-server examples -c-1
+cd examples && npm install && npx vite
 ```
 
 ## Acknowledgements
