@@ -8,6 +8,7 @@ import type { ReactNode, CSSProperties } from "react";
 import reconciler from "./reconciler";
 import { CvNode } from "./CvNode";
 import { executePipeline } from "./executePipeline";
+import { descMat } from "./matDebug";
 import { useOpenCv } from "../components/OpenCvProvider";
 import type { Mat } from "../types";
 
@@ -49,6 +50,7 @@ export const CvCanvas = forwardRef<HTMLCanvasElement, CvCanvasProps>(
           }
           prevMatRef.current = mat;
 
+          console.log(`CvCanvas received: ${descMat(mat)}`);
           const canvas = canvasRef.current;
           if (canvas) {
             cv.imshow(canvas, mat);

@@ -1,6 +1,7 @@
 import type { CV, Mat } from "../types";
 import { CvNode } from "./CvNode";
 import { buildArgs } from "../filters/buildArgs";
+import { descMat } from "./matDebug";
 
 export async function executePipeline(
   cv: CV,
@@ -25,7 +26,9 @@ export async function executePipeline(
   try {
     const result = buildArgs(cv, node.type, childMat, node.props);
     dst = result.dst;
+    console.log(`cv.${node.type}(`, ...result.args.map((a: unknown) => a instanceof cv.Mat ? descMat(a as Mat) : a), `)`);
     cv[node.type](...result.args);
+    console.log(`  → ${descMat(dst!)}`);
     // Clean up child mat (intermediate)
     try { childMat.delete(); } catch { /* noop */ }
     return dst;
