@@ -1,6 +1,14 @@
 #!/usr/bin/env node
 import { execSync } from "child_process";
-import { mkdirSync, rmSync, existsSync } from "fs";
+import { mkdirSync, rmSync } from "fs";
+import { createConnection } from "net";
+
+// --- Config ---
+
+const slug = process.argv[2] || "canny-gaussian";
+const port = Number(process.argv[3]) || 5199;
+const outDir = process.argv[4] || "gifs";
+const baseUrl = `http://localhost:${port}`;
 
 // --- Preflight checks ---
 
@@ -11,6 +19,20 @@ try {
   console.error("Error: 'convert' (ImageMagick) not found. Install it with: sudo apt install imagemagick");
   process.exit(1);
 }
+
+// Check dev server is running on port
+await new Promise((resolve, reject) => {
+  const sock = createConnection({ port }, () => {
+    sock.destroy();
+    resolve();
+  });
+  sock.on("error", () => {
+    reject();
+  });
+}).catch(() => {
+  console.error(`Error: Nothing is listening on port ${port}. Start the dev server first:\n  cd examples && npx vite --port ${port}`);
+  process.exit(1);
+});
 
 // Check for Playwright Firefox
 let firefox;
@@ -28,13 +50,10 @@ try {
   console.error("Error: Playwright Firefox browser not installed. Run: npx playwright install firefox");
   process.exit(1);
 }
-
-// --- Config ---
-
-const slug = process.argv[2] || "canny-gaussian";
-const baseUrl = process.argv[3] || "http://localhost:5199";
-const framesDir = "/tmp/gif-frames";
-const outFile = `/tmp/${slug}.gif`;
+import { tmpdir } from "os";
+import { join } from "path";
+const framesDir = join(tmpdir(), "capture-gif-frames");
+const outFile = join(outDir, `${slug}.gif`);
 const FRAME_DELAY = 800; // ms to wait after each slider change
 const INITIAL_WAIT = 5000; // ms to wait for OpenCV to load
 const STEPS = 12; // number of slider positions per slider
@@ -43,6 +62,7 @@ const STEPS = 12; // number of slider positions per slider
 
 rmSync(framesDir, { recursive: true, force: true });
 mkdirSync(framesDir, { recursive: true });
+mkdirSync(outDir, { recursive: true });
 
 console.log(`Launching headless Firefox...`);
 const browser = await firefox.launch({ headless: true });
@@ -124,4 +144,7 @@ execSync(
   `convert -delay 8 -loop 0 ${framesDir}/frame-*.png -resize 800x ${outFile}`,
   { stdio: "inherit" }
 );
+// Cleanup temp frames
+rmSync(framesDir, { recursive: true, force: true });
+
 console.log(`Done: ${outFile}`);
