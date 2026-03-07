@@ -33,11 +33,11 @@ export async function executePipeline(
     try { childMat.delete(); } catch { /* noop */ }
     return dst;
   } catch (e) {
-    console.warn(`cvOp ${node.type} error:`, e);
+    console.error(`cvOp ${node.type} error:`, e);
     if (dst) {
       try { dst.delete(); } catch { /* noop */ }
     }
-    // Pass through child mat on error
-    return childMat;
+    try { childMat.delete(); } catch { /* noop */ }
+    return null;
   }
 }
