@@ -1,6 +1,5 @@
-import { StrictMode, useState, useRef } from "react";
-import { createRoot } from "react-dom/client";
-import { OpenCvProvider, CvCanvas } from "@react-opencv/fiber";
+import { useState, useRef } from "react";
+import { CvCanvas } from "@react-opencv/fiber";
 
 const defaultSrc = "https://picsum.photos/seed/landscape-hills/600/400";
 
@@ -16,7 +15,7 @@ const pipeline = `<CvCanvas>
   </cvCanny>
 </CvCanvas>`;
 
-const App = () => {
+export const EdgePreservingCanny = () => {
   const [threshold1, setThreshold1] = useState(50);
   const [threshold2, setThreshold2] = useState(150);
   const [sigmaS, setSigmaS] = useState(60);
@@ -71,11 +70,3 @@ const App = () => {
     </div>
   );
 };
-
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <OpenCvProvider>
-      <App />
-    </OpenCvProvider>
-  </StrictMode>
-);

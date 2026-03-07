@@ -1,6 +1,5 @@
-import { StrictMode, useState, useRef } from "react";
-import { createRoot } from "react-dom/client";
-import { OpenCvProvider, CvCanvas } from "@react-opencv/fiber";
+import { useState, useRef } from "react";
+import { CvCanvas } from "@react-opencv/fiber";
 
 const defaultSrc = "https://picsum.photos/seed/ocean-waves/600/400";
 
@@ -16,7 +15,7 @@ const pipeline = `<CvCanvas>
   </cvThreshold>
 </CvCanvas>`;
 
-const App = () => {
+export const ThresholdBilateral = () => {
   const [thresh, setThresh] = useState(128);
   const [d, setD] = useState(9);
   const [sigmaColor, setSigmaColor] = useState(75);
@@ -77,11 +76,3 @@ const App = () => {
     </div>
   );
 };
-
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <OpenCvProvider>
-      <App />
-    </OpenCvProvider>
-  </StrictMode>
-);

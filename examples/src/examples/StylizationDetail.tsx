@@ -1,6 +1,5 @@
-import { StrictMode, useState, useRef } from "react";
-import { createRoot } from "react-dom/client";
-import { OpenCvProvider, CvCanvas } from "@react-opencv/fiber";
+import { useState, useRef } from "react";
+import { CvCanvas } from "@react-opencv/fiber";
 
 const defaultSrc = "https://picsum.photos/seed/flowers-garden/600/400";
 
@@ -12,7 +11,7 @@ const pipeline = `<CvCanvas>
   </cvStylization>
 </CvCanvas>`;
 
-const App = () => {
+export const StylizationDetail = () => {
   const [sigmaS, setSigmaS] = useState(60);
   const [sigmaR, setSigmaR] = useState(0.45);
   const [imageSrc, setImageSrc] = useState(defaultSrc);
@@ -57,11 +56,3 @@ const App = () => {
     </div>
   );
 };
-
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <OpenCvProvider>
-      <App />
-    </OpenCvProvider>
-  </StrictMode>
-);

@@ -1,26 +1,23 @@
-import { StrictMode, useState, useRef } from "react";
-import { createRoot } from "react-dom/client";
-import { OpenCvProvider, CvCanvas } from "@react-opencv/fiber";
+import { useState, useRef } from "react";
+import { CvCanvas } from "@react-opencv/fiber";
 
-const defaultSrc = "https://picsum.photos/seed/colorful-fruit/600/400";
+const defaultSrc = "https://picsum.photos/seed/city-buildings/600/400";
 
 const pipeline = `<CvCanvas>
   <cvConvertScaleAbs alpha={alpha}>
-    <cvScharr ddepth={5} dx={1} dy={0}>
-      <cvCvtColor code={6}>
-        <cvPyrMeanShiftFiltering sp={sp} sr={sr}>
-          <cvCvtColor code={3}>
-            <cvImage src={imageSrc} />
-          </cvCvtColor>
-        </cvPyrMeanShiftFiltering>
+    <cvLaplacian ddepth={5} ksize={lapKsize}>
+      <cvCvtColor code={11}>
+        <cvGaussianBlur ksize={[k, k]} sigmaX={0}>
+          <cvImage src={imageSrc} />
+        </cvGaussianBlur>
       </cvCvtColor>
-    </cvScharr>
+    </cvLaplacian>
   </cvConvertScaleAbs>
 </CvCanvas>`;
 
-const App = () => {
-  const [sp, setSp] = useState(20);
-  const [sr, setSr] = useState(40);
+export const LaplacianBlur = () => {
+  const [blurKsize, setBlurKsize] = useState(5);
+  const [lapKsize, setLapKsize] = useState(3);
   const [alpha, setAlpha] = useState(4);
   const [imageSrc, setImageSrc] = useState(defaultSrc);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -32,17 +29,17 @@ const App = () => {
 
   return (
     <div style={{ padding: 20, maxWidth: 800 }}>
-      <h3 style={{ margin: "0 0 12px", color: "#c0b0d0" }}>PyrMeanShift + Scharr</h3>
+      <h3 style={{ margin: "0 0 12px", color: "#c0b0d0" }}>Laplacian + Gaussian Blur</h3>
       <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 12 }}>
         <label style={{ display: "flex", alignItems: "center" }}>
-          <span style={{ display: "inline-block", width: 160 }}>sp: {sp}</span>
-          <input type="range" min={1} max={80} value={sp}
-            onChange={(e) => setSp(Number(e.target.value))} />
+          <span style={{ display: "inline-block", width: 160 }}>blur ksize: {blurKsize}</span>
+          <input type="range" min={1} max={31} step={2} value={blurKsize}
+            onChange={(e) => setBlurKsize(Number(e.target.value))} />
         </label>
         <label style={{ display: "flex", alignItems: "center" }}>
-          <span style={{ display: "inline-block", width: 160 }}>sr: {sr}</span>
-          <input type="range" min={1} max={80} value={sr}
-            onChange={(e) => setSr(Number(e.target.value))} />
+          <span style={{ display: "inline-block", width: 160 }}>laplacian ksize: {lapKsize}</span>
+          <input type="range" min={1} max={7} step={2} value={lapKsize}
+            onChange={(e) => setLapKsize(Number(e.target.value))} />
         </label>
         <label style={{ display: "flex", alignItems: "center" }}>
           <span style={{ display: "inline-block", width: 160 }}>alpha: {alpha}</span>
@@ -58,15 +55,13 @@ const App = () => {
       <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
         <CvCanvas style={{ maxWidth: "100%", flex: 1 }}>
           <cvConvertScaleAbs alpha={alpha}>
-            <cvScharr ddepth={5} dx={1} dy={0}>
-              <cvCvtColor code={6}>
-                <cvPyrMeanShiftFiltering sp={sp} sr={sr}>
-                  <cvCvtColor code={3}>
-                    <cvImage src={imageSrc} />
-                  </cvCvtColor>
-                </cvPyrMeanShiftFiltering>
+            <cvLaplacian ddepth={5} ksize={lapKsize}>
+              <cvCvtColor code={11}>
+                <cvGaussianBlur ksize={[blurKsize, blurKsize]} sigmaX={0}>
+                  <cvImage src={imageSrc} />
+                </cvGaussianBlur>
               </cvCvtColor>
-            </cvScharr>
+            </cvLaplacian>
           </cvConvertScaleAbs>
         </CvCanvas>
         <img src={imageSrc} style={{ width: "33%", borderRadius: 4, opacity: 0.85 }} />
@@ -75,11 +70,3 @@ const App = () => {
     </div>
   );
 };
-
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <OpenCvProvider>
-      <App />
-    </OpenCvProvider>
-  </StrictMode>
-);

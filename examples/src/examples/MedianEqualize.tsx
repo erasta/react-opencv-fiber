@@ -1,6 +1,5 @@
-import { StrictMode, useState, useRef } from "react";
-import { createRoot } from "react-dom/client";
-import { OpenCvProvider, CvCanvas } from "@react-opencv/fiber";
+import { useState, useRef } from "react";
+import { CvCanvas } from "@react-opencv/fiber";
 
 const defaultSrc = "https://picsum.photos/seed/portrait-face/600/400";
 
@@ -14,7 +13,7 @@ const pipeline = `<CvCanvas>
   </cvMedianBlur>
 </CvCanvas>`;
 
-const App = () => {
+export const MedianEqualize = () => {
   const [ksize, setKsize] = useState(5);
   const [imageSrc, setImageSrc] = useState(defaultSrc);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -27,7 +26,6 @@ const App = () => {
   };
 
   const handleKsizeChange = (value: number) => {
-    // Ensure ksize is always odd
     const odd = value % 2 === 0 ? value + 1 : value;
     setKsize(Math.min(odd, 31));
   };
@@ -79,11 +77,3 @@ const App = () => {
     </div>
   );
 };
-
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <OpenCvProvider>
-      <App />
-    </OpenCvProvider>
-  </StrictMode>
-);

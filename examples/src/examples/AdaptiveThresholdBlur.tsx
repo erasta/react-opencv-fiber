@@ -1,6 +1,5 @@
-import { StrictMode, useState, useRef } from "react";
-import { createRoot } from "react-dom/client";
-import { OpenCvProvider, CvCanvas } from "@react-opencv/fiber";
+import { useState, useRef } from "react";
+import { CvCanvas } from "@react-opencv/fiber";
 
 const defaultSrc = "https://picsum.photos/seed/threshold-text/600/400";
 
@@ -14,7 +13,7 @@ const pipeline = `<CvCanvas>
   </cvAdaptiveThreshold>
 </CvCanvas>`;
 
-const App = () => {
+export const AdaptiveThresholdBlur = () => {
   const [blockSize, setBlockSize] = useState(11);
   const [c, setC] = useState(2);
   const [blurKsize, setBlurKsize] = useState(5);
@@ -98,11 +97,3 @@ const App = () => {
     </div>
   );
 };
-
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <OpenCvProvider>
-      <App />
-    </OpenCvProvider>
-  </StrictMode>
-);
