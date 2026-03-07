@@ -91,6 +91,19 @@ Operations are nested inside-out — the innermost element runs first:
 
 Props map directly to OpenCV function parameters. Array values are coerced to the appropriate OpenCV types (`Size`, `Point`, `Scalar`).
 
+#### `__srcParam` / `__dstParam`
+
+By default, each operation is called as `cv.op(src, dst, ...params)` — matching the OpenCV.js convention of `src` at position 0 and `dst` at position 1. Some functions use a different argument order. Use `__srcParam` and `__dstParam` to override the position:
+
+```tsx
+{/* applyColorMap expects cv.applyColorMap(src, colormap, dst) */}
+<cvApplyColorMap colormap={2} __dstParam={2}>
+  <cvCvtColor code={11}>
+    <cvImage src="photo.jpg" />
+  </cvCvtColor>
+</cvApplyColorMap>
+```
+
 ### `<cvImage>`
 
 Special element that loads an image (URL or data URI) into a `Mat`.
