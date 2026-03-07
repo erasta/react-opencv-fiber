@@ -6,6 +6,7 @@ import "./fiber/types";
 export type {
   CV,
   Mat,
+  CvDebugConfig,
   OpenCVContextValue,
   ParamConfig,
   SignatureParam,

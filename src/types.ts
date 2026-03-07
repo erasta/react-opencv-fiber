@@ -8,11 +8,19 @@ declare global {
 export type CV = any;
 export type Mat = any;
 
+export interface CvDebugConfig {
+  validateOps?: boolean;
+  warnMissingOps?: boolean;
+  logPipeline?: boolean;
+}
+
 export interface OpenCVContextValue {
   cv: CV | null;
   loading: boolean;
   loaded: boolean;
   error: string | null;
+  missingOps: Set<string>;
+  debug: CvDebugConfig;
 }
 
 export type OnMatCallback = (mat: Mat) => void;

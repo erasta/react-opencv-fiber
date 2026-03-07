@@ -29,7 +29,7 @@ export const CvCanvas = forwardRef<HTMLCanvasElement, CvCanvasProps>(
     const canvasRef = useRef<HTMLCanvasElement>(null);
     useImperativeHandle(ref, () => canvasRef.current!);
 
-    const { cv, loaded } = useOpenCv();
+    const { cv, loaded, missingOps, debug } = useOpenCv();
     const containerRef = useRef<ReturnType<typeof reconciler.createContainer> | null>(null);
     const rootNodeRef = useRef<CvNode | null>(null);
     const rafRef = useRef<number>(0);
@@ -42,7 +42,7 @@ export const CvCanvas = forwardRef<HTMLCanvasElement, CvCanvasProps>(
       const runPipeline = async () => {
         if (!cv || !rootNodeRef.current) return;
         try {
-          const mat = await executePipeline(cv, rootNodeRef.current);
+          const mat = await executePipeline(cv, rootNodeRef.current, missingOps, debug);
           if (!mat) return;
 
           if (prevMatRef.current) {
@@ -50,7 +50,9 @@ export const CvCanvas = forwardRef<HTMLCanvasElement, CvCanvasProps>(
           }
           prevMatRef.current = mat;
 
-          console.log(`CvCanvas received: ${descMat(mat)}`);
+          if (debug.logPipeline) {
+            console.log(`CvCanvas received: ${descMat(mat)}`);
+          }
           const canvas = canvasRef.current;
           if (canvas) {
             cv.imshow(canvas, mat);
