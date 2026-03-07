@@ -32,7 +32,8 @@
   "scripts": {
     "build": "vite build && tsc -p tsconfig.build.json && mkdir -p dist/data && cp src/data/opencv-signatures.json dist/data/",
     "lint": "eslint .",
-    "prepack": "npm run build"
+    "prepack": "npm run build",
+    "postpublish": "git tag v$npm_package_version && git push origin v$npm_package_version"
   },
   "dependencies": {
     "react-reconciler": "^0.33.0"
