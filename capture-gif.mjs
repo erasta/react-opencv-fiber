@@ -131,12 +131,13 @@ async function captureExample(slug) {
   }
 
   let frame = 0;
+  let currentSlider = "initial";
 
   async function screenshot() {
     const path = `${framesDir}/frame-${String(frame).padStart(4, "0")}.png`;
     await page.waitForTimeout(FRAME_DELAY);
     await page.screenshot({ path });
-    console.log(`  frame ${frame}`);
+    console.log(`  [${slug}] slider ${currentSlider} — frame ${frame}`);
     frame++;
   }
 
@@ -148,14 +149,16 @@ async function captureExample(slug) {
     const max = Number(await slider.getAttribute("max"));
     const step = Number((await slider.getAttribute("step")) || "1");
 
-    console.log(`Sweeping slider ${si}: min=${min} max=${max} step=${step}`);
+    currentSlider = `${si} (min=${min} max=${max} step=${step})`;
+    console.log(`Sweeping slider ${currentSlider}`);
 
     const values = [];
     const range = max - min;
+    const decimals = (String(step).split(".")[1] || "").length;
     for (let i = 0; i <= STEPS; i++) {
       const raw = min + (range * i) / STEPS;
       const snapped = min + Math.round((raw - min) / step) * step;
-      values.push(Math.min(snapped, max));
+      values.push(Math.min(Number(snapped.toFixed(decimals)), max));
     }
 
     for (const val of values) {
